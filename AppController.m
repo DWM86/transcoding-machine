@@ -503,7 +503,12 @@ const NSString *QMErrorDomain = @"QMErrors";
 		metadataTask = nil;
 		[metadataOutputHandle release];
 		metadataOutputHandle = nil;
-
+		
+		if(status == 0){
+			[progressLabel setStringValue:@"Writing cover art to file...."];
+			[self writeArt:metadataItem error:&error];
+		}
+		
 		[progressWindow orderOut:nil];
 		
 		[metadataItem release];
@@ -514,6 +519,9 @@ const NSString *QMErrorDomain = @"QMErrors";
 }
 
 - (void)metadataProgressTimer:(NSTimer*)theTimer{
+	// No way to get progress
+	return;
+	
 	// Read the last line
 	NSString *fileData;
 	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
@@ -574,102 +582,100 @@ const NSString *QMErrorDomain = @"QMErrors";
 	metadataTask = [[NSTask alloc] init];
 	NSFileHandle *taskStdout = [NSFileHandle fileHandleForWritingAtPath:metadataLogPath];
 	[metadataTask setStandardOutput:taskStdout];
-	//[metadataTask setStandardError:taskStdout];
+	[metadataTask setStandardError:taskStdout];
 
-	[progressLabel setStringValue:@"Cleaning old tags from file..."];
-	[progressBar setIndeterminate:YES];
-	[progressBar setDoubleValue:0.0];
-	[progressWindow makeKeyAndOrderFront:nil];
-	[self cleanOldTags:anItem error:outError];
+//	[progressLabel setStringValue:@"Cleaning old tags from file..."];
+//	[progressBar setIndeterminate:YES];
+//	[progressBar setDoubleValue:0.0];
+//	[progressWindow makeKeyAndOrderFront:nil];
+//	[self cleanOldTags:anItem error:outError];
 	[progressLabel setStringValue:@"Preparing to write new tags..."];
+	[progressWindow makeKeyAndOrderFront:nil];
 	
 	// Export coverart
-	NSString *tempArtPath = [[self applicationSupportDirectory] stringByAppendingPathComponent:@"coverart.jpg"];
-	if (anItem.coverArt != nil) {
-		if([anItem.coverArt writeToFile:tempArtPath atomically:NO] == NO){
-			return NO;
-		};
-	}
+//	NSString *tempArtPath = [[self applicationSupportDirectory] stringByAppendingPathComponent:@"coverart.jpg"];
+//	if (anItem.coverArt != nil) {
+//		if([anItem.coverArt writeToFile:tempArtPath atomically:NO] == NO){
+//			return NO;
+//		};
+//	}
 
     // set arguments
     NSMutableArray *taskArgs = [NSMutableArray array];
-	[taskArgs addObject:anItem.output];
-	[taskArgs addObject:@"--overWrite"];
-	[taskArgs addObject:@"--freefree"];
-	if (anItem.episodeId != [NSString string]) {
-		[taskArgs addObject:@"--TVEpisode"];
-		[taskArgs addObject: anItem.episodeId];
+	if ([anItem episodeId] != [NSString string]) {
+		[taskArgs addObject:@"-o"];
+		[taskArgs addObject: [anItem episodeId]];
+		[taskArgs addObject:@"-I"];
+		[taskArgs addObject: [anItem episodeId]];
 	}
-	if (anItem.coverArt != nil) {
-		[taskArgs addObject:@"--artwork"];
-		[taskArgs addObject:tempArtPath];
+	if ([anItem hdVideo] != nil) {
+		[taskArgs addObject:@"-H"];
+		[taskArgs addObject: [[anItem hdVideo] stringValue]];		
 	}
-//	if (anItem.hdVideo != nil) {
-//		[taskArgs addObject:@"--hdvideo"];
-//		if ([[[anItem hdVideo] stringValue] isEqualToString:@"1"]) {
-//			[taskArgs addObject:@"true"];
-//		}else {
-//			[taskArgs addObject:@"false"];
-//		}
-//	}
-	if (anItem.title != nil) {
-		[taskArgs addObject:@"--title"];
-		[taskArgs addObject: anItem.title];		
+	if ([anItem title] != nil) {
+		[taskArgs addObject:@"-s"];
+		[taskArgs addObject: [anItem title]];		
 	}
-	if (anItem.showName != nil) {		
-		[taskArgs addObject:@"--artist"];
-		[taskArgs addObject: anItem.showName];
-		[taskArgs addObject:@"--TVShowName"];
-		[taskArgs addObject: anItem.showName];
+	if ([anItem showName] != nil) {		
+		[taskArgs addObject:@"-a"];
+		[taskArgs addObject: [anItem showName]];
+		[taskArgs addObject:@"-S"];
+		[taskArgs addObject: [anItem showName]];
 	}
-	if (anItem.releaseDate != nil) {
-		[taskArgs addObject:@"--year"];
-		[taskArgs addObject: anItem.releaseDate];		
+	if ([anItem releaseDate] != nil) {
+		[taskArgs addObject:@"-y"];
+		[taskArgs addObject: [anItem releaseDate]];		
 	}
-	if (anItem.summary != nil) {
-		[taskArgs addObject:@"--comment"];
-		[taskArgs addObject: anItem.summary];		
+	if ([anItem summary] != nil) {
+		[taskArgs addObject:@"-m"];
+		[taskArgs addObject: [anItem summary]];		
 	}
-	if (anItem.longDescription != nil) {
-		[taskArgs addObject:@"--description"];
-		[taskArgs addObject: anItem.longDescription];		
+	if ([anItem longDescription] != nil) {
+		[taskArgs addObject:@"-l"];
+		[taskArgs addObject: [anItem longDescription]];		
 	}
-	if (anItem.season != nil) {
-		[taskArgs addObject:@"--TVSeasonNum"];
-		[taskArgs addObject: [anItem.season stringValue]];
+	if ([anItem episode] != nil) {
+		[taskArgs addObject:@"-t"];
+		[taskArgs addObject: [[anItem episode] stringValue]];
+		[taskArgs addObject:@"-M"];
+		[taskArgs addObject: [[anItem episode] stringValue]];		
 	}
-	if (anItem.episode != nil) {
-		[taskArgs addObject:@"--TVEpisodeNum"];
-		[taskArgs addObject: [anItem.episode stringValue]];
+	if ([anItem network] != nil) {
+		[taskArgs addObject:@"-N"];
+		[taskArgs addObject: [anItem network]];		
 	}
-	if (anItem.network != nil) {
-		[taskArgs addObject:@"--TVNetwork"];
-		[taskArgs addObject: anItem.network];		
+	if ([anItem season] != nil) {
+		[taskArgs addObject:@"-n"];
+		[taskArgs addObject: [[anItem season] stringValue]];
+		[taskArgs addObject:@"-d"];
+		[taskArgs addObject: [[anItem season] stringValue]];		
 	}
-	[taskArgs addObject:@"--stik"];
-	if ([anItem.type intValue] == ItemTypeTV) {
-		[taskArgs addObject:@"TV Show"];
+	[taskArgs addObject:@"-i"];
+	if ([[anItem type] intValue] == ItemTypeTV) {
+		[taskArgs addObject:@"tvshow"];
 	}else {
-		[taskArgs addObject:@"Movie"];
+		[taskArgs addObject:@"movie"];
 	}
-
+	
+	[taskArgs addObject:[anItem output]];
+	
 	
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [metadataTask setArguments:taskArgs];
 	
 	// launch
-    [metadataTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"AtomicParsley"]];
+    [metadataTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"mp4tags"]];
     [metadataTask launch];
 	
 	if ([metadataTask isRunning]) {
 		metadataItem = [anItem retain];
-		metadataOutputHandle = [[NSFileHandle fileHandleForReadingAtPath:metadataLogPath] retain];
-
-		metadataReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2 
-															target: self 
-														  selector:@selector(metadataProgressTimer:)
-														  userInfo: nil
-														   repeats: TRUE] retain];
+//		metadataOutputHandle = [[NSFileHandle fileHandleForReadingAtPath:metadataLogPath] retain];
+//
+//		metadataReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2 
+//															target: self 
+//														  selector:@selector(metadataProgressTimer:)
+//														  userInfo: nil
+//														   repeats: TRUE] retain];
 		[progressLabel setStringValue:@"Writing metadata to output file..."];
 		[progressBar setIndeterminate:YES];
 		[progressBar setDoubleValue:0.0];
