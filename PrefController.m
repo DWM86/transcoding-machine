@@ -17,11 +17,11 @@
 
 	// Make sure the debug level and log files settings are actually in the pref file
 	// to ensure the applescript can read the values.
-	if([[NSUserDefaults standardUserDefaults] objectForKey:@"logFile"] == nil){		
+	if([[NSUserDefaults standardUserDefaults] objectForKey:@"logFile"] == nil){
 		[[NSUserDefaults standardUserDefaults] setObject:[appSupportDir stringByAppendingPathComponent:@"tm.log"] forKey:@"logFile"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 	}
-	if([[NSUserDefaults standardUserDefaults] objectForKey:@"debugLevel"] == nil){		
+	if([[NSUserDefaults standardUserDefaults] objectForKey:@"debugLevel"] == nil){
 		[[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"debugLevel"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 	}
@@ -33,7 +33,7 @@
 				@"87C0BA77037B5012", @"ttdApiKey",
 				@"329edec1b30392adcc0a28f351b09336", @"tmdApiKey",
 				@"/Applications/HandBrakeCLI",	@"transcoderPath",
-				@"-i |INPUT| -o |OUTPUT| -e x264 -q 0.589999973773956 -a 1,1 -E faac,ac3 -B 160,auto -R 48,Auto -6 dpl2,auto -f mp4 -4 -X 1280 -P -m -x level=30:cabac=0:ref=3:mixed-refs=1:bframes=6:weightb=1:direct=auto:no-fast-pskip=1:me=umh:subq=7:analyse=all",
+				@"-i |INPUT| -o |OUTPUT| -e x264 -q 0.589999973773956 -a 1,1 -E faac,ac3 -B 160,auto -R 48,Auto -6 dpl2,auto -f mp4 -4 -X 1280 -P --strict-anamorphic -x level=30:cabac=0:ref=3:mixed-refs=1:bframes=6:weightb=1:direct=auto:no-fast-pskip=1:me=umh:subq=7:analyse=all",
 									@"transcoderArgs",
 				nil]];
 }
@@ -57,7 +57,7 @@
 	[transcoderArgsField setStringValue:[standardDefaults objectForKey:@"transcoderArgs"]];
 	[fileExtensionsField setStringValue:[standardDefaults objectForKey:@"allowedExtensions"]];
 	[self setMonitorFields];
-	
+
     [window makeKeyAndOrderFront: nil];
 }
 
@@ -72,8 +72,8 @@
 	NSString *oldWatchedFolder = [[NSUserDefaults standardUserDefaults] stringForKey:@"monitoredFolder"];
 	NSString *newWatchedFolder = [monitoredFolderField stringValue];
 	NSFileManager *fileManager = [NSFileManager defaultManager];
-	
-	// Add trailing slash 
+
+	// Add trailing slash
 	if (![newWatchedFolder hasSuffix:@"/"]) {
 		newWatchedFolder = [newWatchedFolder stringByAppendingString:@"/"];
 		[monitoredFolderField setStringValue:newWatchedFolder];
@@ -84,7 +84,7 @@
 		[monitoredFolderField selectText:sender];
 		return;
 	}
-	
+
 	if (![fileManager fileExistsAtPath:[outputFolderField stringValue] isDirectory:&isDir] || !isDir) {
 		NSRunAlertPanel(@"Invalid output folder", @"Invalid output folder, make sure the directory exists and is writable", @"Ok", nil, nil);
 		[outputFolderField selectText:sender];
@@ -113,13 +113,13 @@
 
 - (IBAction)toggleMonitoring:(id)sender{
 	NSString *newWatchedFolder = [monitoredFolderField stringValue];
-	
-	// Add trailing slash 
+
+	// Add trailing slash
 	if (![newWatchedFolder hasSuffix:@"/"]) {
 		newWatchedFolder = [newWatchedFolder stringByAppendingString:@"/"];
 		[monitoredFolderField setStringValue:newWatchedFolder];
 	}
-	
+
 	// Validate path
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	BOOL isDir;
@@ -150,16 +150,16 @@
 	[panel setAllowsMultipleSelection:FALSE];
 	[panel setCanChooseFiles:FALSE];
 	[panel setCanChooseDirectories:TRUE];
-	
+
 	NSString *panelDir = nil;
 	if (sender == browseMonitoredButton) {
 		panelDir = [monitoredFolderField stringValue];
 	}else{
 		panelDir = [outputFolderField stringValue];
 	}
-	
+
 	/* We get the current file name and path from the destination field here */
-	[panel beginSheetForDirectory: panelDir 
+	[panel beginSheetForDirectory: panelDir
 							 file: nil
 				   modalForWindow: [self window] modalDelegate: self
 				   didEndSelector: @selector( browseDirectoryDone:returnCode:contextInfo: )
@@ -167,7 +167,7 @@
 }
 
 - (void) browseDirectoryDone: (NSSavePanel *) sheet
-			  returnCode: (int) returnCode 
+			  returnCode: (int) returnCode
 			 contextInfo: (void *) contextInfo{
     if( returnCode == NSOKButton ){
 		NSError *error;
@@ -176,7 +176,7 @@
 		}else{
 			[outputFolderField setStringValue:[sheet directory]];
 		}
-		
+
     }
 }
 
