@@ -7,33 +7,38 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "PrefController.h"
-#import "QueueController.h"
-#import "QueueItem.h"
-#import "MediaItem.h"
+
+@class QueueItem;
+@class QueueController;
+@class PrefController;
+@class MediaItem;
+
+@protocol TMAppDelegate <NSObject>
+- (void) metadataDidComplete: (MediaItem *) anItem;
+@end
 
 
 @interface AppController : NSObject {
 	NSUserDefaults *defaults;
-    
+
     NSPersistentStoreCoordinator *persistentStoreCoordinator;
     NSManagedObjectModel *managedObjectModel;
     NSManagedObjectContext *managedObjectContext;
-    
+
 	PrefController *prefController;
 	QueueController *queueController;
 	NSString *appSupportDir;
 	NSString *appResourceDir;
 	NSString *encodeStatusFile;
 	NSString *queueFile;
-	
+
 	NSTask *encodingTask;
 	QueueItem *encodingItem;
 	NSFileHandle *encodeOutputHandle;
 	NSTimer *outputReadTimer;
 	double encodeProgress;
 	NSString *encodeETA;
-	
+
 	NSTask *metadataTask;
 	NSFileHandle *metadataOutputHandle;
 	NSTimer *metadataReadTimer;
@@ -41,11 +46,14 @@
 
 	BOOL runQueue;
 	BOOL terminating;
-	
+
 	IBOutlet NSWindow *progressWindow;
 	IBOutlet NSProgressIndicator *progressBar;
 	IBOutlet NSTextField *progressLabel;
+	IBOutlet id <TMAppDelegate> delegate;
 }
+
+@property (nonatomic, retain) id <TMAppDelegate> delegate;
 @property (nonatomic, retain, readonly) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 @property (nonatomic, retain, readonly) NSManagedObjectModel *managedObjectModel;
 @property (nonatomic, retain, readonly) NSManagedObjectContext *managedObjectContext;

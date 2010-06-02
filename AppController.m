@@ -13,32 +13,39 @@
 #import "TheTVDBProvider.h"
 #import "TheMovieDBProvider.h"
 
+#import "PrefController.h"
+#import "QueueController.h"
+#import "QueueItem.h"
+#import "MediaItem.h"
+
 #define FolderActionScriptName @"add to transcoding machine.scpt"
 #define EncodeStatusFilename @"tm_encoder.log"
 const NSString *QMErrorDomain = @"QMErrors";
 
 @implementation AppController
+@synthesize delegate;
+
 - (id)init{
     self = [super init];
     if( !self ){
         return nil;
     }
-		
+
 	// create an autoreleased instance of our value transformer
 	StringToNumberTransformer *sToNTransformer = [[[StringToNumberTransformer alloc] init] autorelease];
-	
+
 	// register it with the name that we refer to it with
-	[NSValueTransformer setValueTransformer:sToNTransformer		 
-									forName:@"StringToNumberTransformer"];		
-	
-	
+	[NSValueTransformer setValueTransformer:sToNTransformer
+									forName:@"StringToNumberTransformer"];
+
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(taskEnded:)
 												 name:NSTaskDidTerminateNotification
 											   object:nil];
-	
+
 	runQueue = TRUE;
-	
+
 	terminating = FALSE;
 
     /* Check for check for the app support directory here as
@@ -61,7 +68,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 
 	encodeProgress = 0.0;
 	encodeETA = [[NSString alloc] initWithString:@"--h--m--s"];
-	
+
 	// Initialize controllers
 	prefController = [[PrefController alloc] initWithController: self];
 	queueController = [[QueueController alloc] initWithController: self];
@@ -77,7 +84,7 @@ const NSString *QMErrorDomain = @"QMErrors";
  */
 
 - (NSString *)applicationSupportDirectory {
-	
+
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
     NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory();
     return [basePath stringByAppendingPathComponent:@"TranscodingMachine"];
@@ -85,41 +92,41 @@ const NSString *QMErrorDomain = @"QMErrors";
 
 
 /**
- Creates, retains, and returns the managed object model for the application 
+ Creates, retains, and returns the managed object model for the application
  by merging all of the models found in the application bundle.
  */
 
 - (NSManagedObjectModel *)managedObjectModel {
-	
+
     if (managedObjectModel) return managedObjectModel;
-	
-    managedObjectModel = [[NSManagedObjectModel mergedModelFromBundles:nil] retain];    
+
+    managedObjectModel = [[NSManagedObjectModel mergedModelFromBundles:nil] retain];
     return managedObjectModel;
 }
 
 
 /**
- Returns the persistent store coordinator for the application.  This 
- implementation will create and return a coordinator, having added the 
- store for the application to it.  (The directory for the store is created, 
+ Returns the persistent store coordinator for the application.  This
+ implementation will create and return a coordinator, having added the
+ store for the application to it.  (The directory for the store is created,
  if necessary.)
  */
 
 - (NSPersistentStoreCoordinator *) persistentStoreCoordinator {
-	
+
     if (persistentStoreCoordinator) return persistentStoreCoordinator;
-	
+
     NSManagedObjectModel *mom = [self managedObjectModel];
     if (!mom) {
         NSAssert(NO, @"Managed object model is nil");
         NSLog(@"%@:%s No model to generate a store from", [self class], _cmd);
         return nil;
     }
-	
+
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *applicationSupportDirectory = [self applicationSupportDirectory];
     NSError *error = nil;
-    
+
     if ( ![fileManager fileExistsAtPath:applicationSupportDirectory isDirectory:NULL] ) {
 		if (![fileManager createDirectoryAtPath:applicationSupportDirectory withIntermediateDirectories:NO attributes:nil error:&error]) {
             NSAssert(NO, ([NSString stringWithFormat:@"Failed to create App Support directory %@ : %@", applicationSupportDirectory,error]));
@@ -127,31 +134,31 @@ const NSString *QMErrorDomain = @"QMErrors";
             return nil;
 		}
     }
-    
+
     NSURL *url = [NSURL fileURLWithPath: [applicationSupportDirectory stringByAppendingPathComponent: @"storedata"]];
     persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel: mom];
-    if (![persistentStoreCoordinator addPersistentStoreWithType:NSXMLStoreType 
-												  configuration:nil 
-															URL:url 
-														options:nil 
+    if (![persistentStoreCoordinator addPersistentStoreWithType:NSXMLStoreType
+												  configuration:nil
+															URL:url
+														options:nil
 														  error:&error]){
         [[NSApplication sharedApplication] presentError:error];
         [persistentStoreCoordinator release], persistentStoreCoordinator = nil;
         return nil;
-    }    
-	
+    }
+
     return persistentStoreCoordinator;
 }
 
 /**
  Returns the managed object context for the application (which is already
- bound to the persistent store coordinator for the application.) 
+ bound to the persistent store coordinator for the application.)
  */
 
 - (NSManagedObjectContext *) managedObjectContext {
-	
+
     if (managedObjectContext) return managedObjectContext;
-	
+
     NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
     if (!coordinator) {
         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -163,7 +170,7 @@ const NSString *QMErrorDomain = @"QMErrors";
     }
     managedObjectContext = [[NSManagedObjectContext alloc] init];
     [managedObjectContext setPersistentStoreCoordinator: coordinator];
-	
+
     return managedObjectContext;
 }
 
@@ -184,13 +191,13 @@ const NSString *QMErrorDomain = @"QMErrors";
  */
 
 - (IBAction) saveAction:(id)sender {
-	
+
     NSError *error = nil;
-    
+
     if (![[self managedObjectContext] commitEditing]) {
         NSLog(@"%@:%s unable to commit editing before saving", [self class], _cmd);
     }
-	
+
     if (![[self managedObjectContext] save:&error]) {
         [[NSApplication sharedApplication] presentError:error];
     }
@@ -204,7 +211,7 @@ const NSString *QMErrorDomain = @"QMErrors";
  */
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
-	
+
 	if ([self isEncodeRunning]) {
 		NSInteger returnCode = NSRunAlertPanel(@"Encode in progress", @"An encoding process is currently running, if you continue the encoding process will be canceled!\n Are you sure you want to quit?", @"Cancel", @"Quit", nil);
 		if (returnCode == NSAlertAlternateReturn) {
@@ -213,31 +220,31 @@ const NSString *QMErrorDomain = @"QMErrors";
 			return NSTerminateLater;
 		}
 	}
-	
+
     if (!managedObjectContext) return NSTerminateNow;
-	
+
     if (![managedObjectContext commitEditing]) {
         NSLog(@"%@:%s unable to commit editing to terminate", [self class], _cmd);
         return NSTerminateCancel;
     }
-	
+
     if (![managedObjectContext hasChanges]) return NSTerminateNow;
-	
+
     NSError *error = nil;
     if (![managedObjectContext save:&error]) {
-		
-        // This error handling simply presents error information in a panel with an 
-        // "Ok" button, which does not include any attempt at error recovery (meaning, 
-        // attempting to fix the error.)  As a result, this implementation will 
-        // present the information to the user and then follow up with a panel asking 
+
+        // This error handling simply presents error information in a panel with an
+        // "Ok" button, which does not include any attempt at error recovery (meaning,
+        // attempting to fix the error.)  As a result, this implementation will
+        // present the information to the user and then follow up with a panel asking
         // if the user wishes to "Quit Anyway", without saving the changes.
-		
-        // Typically, this process should be altered to include application-specific 
-        // recovery steps.  
-		
+
+        // Typically, this process should be altered to include application-specific
+        // recovery steps.
+
         BOOL result = [sender presentError:error];
         if (result) return NSTerminateCancel;
-		
+
         NSString *question = NSLocalizedString(@"Could not save changes while quitting.  Quit anyway?", @"Quit without saves error question message");
         NSString *info = NSLocalizedString(@"Quitting now will lose any changes you have made since the last successful save", @"Quit without saves error question info");
         NSString *quitButton = NSLocalizedString(@"Quit anyway", @"Quit anyway button title");
@@ -247,15 +254,15 @@ const NSString *QMErrorDomain = @"QMErrors";
         [alert setInformativeText:info];
         [alert addButtonWithTitle:quitButton];
         [alert addButtonWithTitle:cancelButton];
-		
+
         NSInteger answer = [alert runModal];
         [alert release];
         alert = nil;
-        
+
         if (answer == NSAlertAlternateReturn) return NSTerminateCancel;
-		
+
     }
-	
+
     return NSTerminateNow;
 }
 
@@ -265,7 +272,7 @@ const NSString *QMErrorDomain = @"QMErrors";
  */
 
 - (void)dealloc {
-	
+
     [managedObjectContext release];
     [persistentStoreCoordinator release];
     [managedObjectModel release];
@@ -280,7 +287,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	// Check for our folder action script
 	NSString *folderActionDest = [@"/Library/Scripts/Folder Action Scripts" stringByAppendingPathComponent:FolderActionScriptName];
 	NSLog(@"Looking for folder action script at %@", folderActionDest);
-	
+
 	if(![[NSFileManager defaultManager] fileExistsAtPath: folderActionDest]){
 		NSString *folderActionSource = [appResourceDir stringByAppendingPathComponent:FolderActionScriptName];
 		NSLog(@"NOT FOUND: Copying script from %@", folderActionSource);
@@ -298,16 +305,16 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if ([self isEncodeRunning]) {
 		return NO;
 	}
-	
+
 	// Start the next item
 	if (runQueue == TRUE) {
-		
+
 		QueueItem *nextItem = [self nextQueueItem];
 		BOOL foundItem = NO;
 		while (foundItem == NO) {
 			// TODO: Make sure filesize is stable;
-			
-			
+
+
 
 			if([self startEncode:nextItem]){
 				foundItem = YES;
@@ -319,11 +326,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 			}
 
 		}
-		
-		
+
+
 		return [self isEncodeRunning];
 	}
-	
+
 	return NO;
 }
 
@@ -332,17 +339,17 @@ const NSString *QMErrorDomain = @"QMErrors";
 		NSLog(@"Encoding is already running");
 		return NO;
 	}
-	
+
 	if(anItem == nil){
 		NSLog(@"nil item passed to startEncode");
 		return NO;
 	}
-	
+
 	// Restart the automatic queue running
 	runQueue = TRUE;
-	
+
 	NSError *error;
-	
+
 	// Clean up old status file
 	NSFileManager *defaultManger = [NSFileManager defaultManager];
 	if ([defaultManger fileExistsAtPath:encodeStatusFile]) {
@@ -353,7 +360,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	[[NSFileManager defaultManager] createFileAtPath:encodeStatusFile contents:nil attributes:nil];
 
 	encodeProgress = 0.0;
-	
+
 	// make task object
 	encodingTask = [[NSTask alloc] init];
 	encodingItem = [anItem retain];
@@ -361,8 +368,8 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSFileHandle *taskStdout = [NSFileHandle fileHandleForWritingAtPath:encodeStatusFile];
 	[encodingTask setStandardOutput:taskStdout];
 	[encodingTask setStandardError:taskStdout];
-	
-	
+
+
     // set arguments
 	NSString *argString = [[NSUserDefaults standardUserDefaults] stringForKey:@"transcoderArgs"];
 	NSArray *argArray = [argString componentsSeparatedByString:@" "];
@@ -378,7 +385,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	}
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [encodingTask setArguments:taskArgs];
-	
+
 	// launch
     [encodingTask setLaunchPath:[[NSUserDefaults standardUserDefaults] stringForKey:@"transcoderPath"]];
     [encodingTask launch];
@@ -389,26 +396,26 @@ const NSString *QMErrorDomain = @"QMErrors";
 		// Store the pid in case we die
 		NSUserDefaults *standardDefaults = [NSUserDefaults standardUserDefaults];
 		[standardDefaults setObject:[NSNumber numberWithInt:[encodingTask processIdentifier]] forKey:@"encodePid"];
-		 
+
 		[queueController updateEncodeProgress:0.0 withEta:nil ofItem:[self encodingItem]];
 		// Setup the timer and status file
-		outputReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2 
-														   target: self 
+		outputReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2
+														   target: self
 														 selector:@selector(encodeProgressTimer:)
 														 userInfo: nil
 														  repeats: TRUE] retain];
 		encodeOutputHandle = [[NSFileHandle fileHandleForReadingAtPath:encodeStatusFile] retain];
-		
+
 		return YES;
 	}
-	
+
 	return NO;
 }
 
 - (void)encodeProgressTimer:(NSTimer*)theTimer{
 	// Read the last line
 	NSLog(@"Output read timer fired");
-	NSString *fileData = [[NSString alloc] initWithData:[encodeOutputHandle readDataToEndOfFile] 
+	NSString *fileData = [[NSString alloc] initWithData:[encodeOutputHandle readDataToEndOfFile]
 													encoding:NSASCIIStringEncoding];
 	NSArray *lines = [fileData componentsSeparatedByString:@"\r"];
 	NSLog(@"Found %d lines", [lines count]);
@@ -434,7 +441,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if (encodingItem != nil && encodingTask != nil) {
 		return TRUE;
 	}
-	
+
 	return FALSE;
 }
 
@@ -442,7 +449,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSTask *notifyingTask = [aNotification object];
 	NSError *error;
 	int status = [notifyingTask terminationStatus];
-	
+
 	if (notifyingTask == encodingTask) {
 		QueueItem *currentItem = [self encodingItem];
 		NSLog(@"The encoding task has stopped");
@@ -455,14 +462,14 @@ const NSString *QMErrorDomain = @"QMErrors";
 				NSLog(@"Task succeeded.");
 			}
 		}
-		// Clear out our cached encode pid 
+		// Clear out our cached encode pid
 		NSUserDefaults *standardDefaults = [NSUserDefaults standardUserDefaults];
 		[standardDefaults setObject:[NSNumber numberWithInt:0] forKey:@"encodePid"];
-		
-		
+
+
 		// Update the queue item's status
 		[queueController encodeEnded];
-		
+
 		// Clean up
 		[outputReadTimer invalidate];
 		[outputReadTimer release];
@@ -473,20 +480,20 @@ const NSString *QMErrorDomain = @"QMErrors";
 		encodingTask = nil;
 		[encodeOutputHandle release];
 		encodeOutputHandle = nil;
-		
+
 		if (encodeSucceeded == YES) {
 			[self setHDFlag:currentItem.mediaItem error:&error];
 			[self writeMetadata:currentItem.mediaItem error:&error];
 			[currentItem setStatus:[NSNumber numberWithInt:255]];
 		}else {
 			NSFileHandle *logHandle = [NSFileHandle fileHandleForReadingAtPath:encodeStatusFile];
-			NSString *fileData = [[NSString alloc] initWithData:[logHandle readDataToEndOfFile] 
+			NSString *fileData = [[NSString alloc] initWithData:[logHandle readDataToEndOfFile]
 													   encoding:NSASCIIStringEncoding];
 			currentItem.mediaItem.message = fileData;
 			currentItem.status = [NSNumber numberWithInt:3];
 		}
-		
-		[self saveAction:nil];	
+
+		[self saveAction:nil];
 		// If the user requested to terminate then do so
 		if (terminating == TRUE) {
 			[[NSApplication sharedApplication] replyToApplicationShouldTerminate: YES];
@@ -494,8 +501,8 @@ const NSString *QMErrorDomain = @"QMErrors";
 			[self runQueue];
 		}
 	}else if(notifyingTask == metadataTask){
-		NSLog(@"metadata task ended with status %d", status);		
-		
+		NSLog(@"metadata task ended with status %d", status);
+
 		[metadataReadTimer invalidate];
 		[metadataReadTimer release];
 		metadataReadTimer = nil;
@@ -503,17 +510,20 @@ const NSString *QMErrorDomain = @"QMErrors";
 		metadataTask = nil;
 		[metadataOutputHandle release];
 		metadataOutputHandle = nil;
-		
+
 		if(status == 0){
 			[progressLabel setStringValue:@"Writing cover art to file...."];
 			[self writeArt:metadataItem error:&error];
 		}
-		
+
+		if (self.delegate != nil) {
+			[self.delegate metadataDidComplete:metadataItem];
+		}
 		[progressWindow orderOut:nil];
-		
+
 		[metadataItem release];
 		metadataItem = nil;
-		
+
 	}
 
 }
@@ -521,11 +531,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 - (void)metadataProgressTimer:(NSTimer*)theTimer{
 	// No way to get progress
 	return;
-	
+
 	// Read the last line
 	NSString *fileData;
 	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-	fileData = [[NSString alloc] initWithData:[metadataOutputHandle readDataToEndOfFile] 
+	fileData = [[NSString alloc] initWithData:[metadataOutputHandle readDataToEndOfFile]
 									 encoding:NSASCIIStringEncoding];
 	NSLog(@"File Data: %@", fileData);
 	NSArray *lines = [fileData componentsSeparatedByString:@"\r"];
@@ -544,14 +554,14 @@ const NSString *QMErrorDomain = @"QMErrors";
 		[progressBar setDoubleValue:[[formatter numberFromString:progressString] doubleValue]];
 	}
 	[formatter release];
-	[fileData release];		
+	[fileData release];
 }
 
 - (BOOL) cleanOldTags: (MediaItem *)anItem error:(NSError **) outError{
 	if(anItem == nil){
 		NSLog(@"cleanOldTags received nil MediaItem!");
 	}
-	
+
 	NSTask *cleanTask = [[NSTask alloc] init];
     // set arguments
     NSMutableArray *taskArgs = [NSMutableArray array];
@@ -559,23 +569,24 @@ const NSString *QMErrorDomain = @"QMErrors";
 	[taskArgs addObject:@"--overWrite"];
 	[taskArgs addObject:@"--artwork"];
 	[taskArgs addObject:@"REMOVE_ALL"];
-	
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [cleanTask setArguments:taskArgs];
-	
+
 	// launch
     [cleanTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"AtomicParsley"]];
     [cleanTask launch];
-	
+
 	while ([cleanTask isRunning]) {
 		sleep(1);
 	}
-	
-	NSLog(@"art clear task ended with status %d", [cleanTask terminationStatus]);	
+
+	NSLog(@"art clear task ended with status %d", [cleanTask terminationStatus]);
+	[cleanTask release];
 	return YES;
 }
 
-- (BOOL) writeMetadata: (MediaItem *)anItem error:(NSError **) outError {	
+- (BOOL) writeMetadata: (MediaItem *)anItem error:(NSError **) outError {
 	NSString *metadataLogPath = [[self applicationSupportDirectory] stringByAppendingPathComponent:@"metadata.log"];
 	[[NSFileManager defaultManager] createFileAtPath:metadataLogPath contents:nil attributes:nil];
 
@@ -591,7 +602,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 //	[self cleanOldTags:anItem error:outError];
 	[progressLabel setStringValue:@"Preparing to write new tags..."];
 	[progressWindow makeKeyAndOrderFront:nil];
-	
+
 	// Export coverart
 //	NSString *tempArtPath = [[self applicationSupportDirectory] stringByAppendingPathComponent:@"coverart.jpg"];
 //	if (anItem.coverArt != nil) {
@@ -608,15 +619,15 @@ const NSString *QMErrorDomain = @"QMErrors";
 		[taskArgs addObject:@"-I"];
 		[taskArgs addObject: [anItem episodeId]];
 	}
-	if ([anItem hdVideo] != nil) {
-		[taskArgs addObject:@"-H"];
-		[taskArgs addObject: [[anItem hdVideo] stringValue]];		
-	}
+//	if ([anItem hdVideo] != nil) {
+//		[taskArgs addObject:@"-H"];
+//		[taskArgs addObject: [[anItem hdVideo] stringValue]];
+//	}
 	if ([anItem title] != nil) {
 		[taskArgs addObject:@"-s"];
-		[taskArgs addObject: [anItem title]];		
+		[taskArgs addObject: [anItem title]];
 	}
-	if ([anItem showName] != nil) {		
+	if ([anItem showName] != nil) {
 		[taskArgs addObject:@"-a"];
 		[taskArgs addObject: [anItem showName]];
 		[taskArgs addObject:@"-S"];
@@ -624,31 +635,31 @@ const NSString *QMErrorDomain = @"QMErrors";
 	}
 	if ([anItem releaseDate] != nil) {
 		[taskArgs addObject:@"-y"];
-		[taskArgs addObject: [anItem releaseDate]];		
+		[taskArgs addObject: [anItem releaseDate]];
 	}
 	if ([anItem summary] != nil) {
 		[taskArgs addObject:@"-m"];
-		[taskArgs addObject: [anItem summary]];		
+		[taskArgs addObject: [anItem summary]];
 	}
 	if ([anItem longDescription] != nil) {
 		[taskArgs addObject:@"-l"];
-		[taskArgs addObject: [anItem longDescription]];		
+		[taskArgs addObject: [anItem longDescription]];
 	}
 	if ([anItem episode] != nil) {
 		[taskArgs addObject:@"-t"];
 		[taskArgs addObject: [[anItem episode] stringValue]];
 		[taskArgs addObject:@"-M"];
-		[taskArgs addObject: [[anItem episode] stringValue]];		
+		[taskArgs addObject: [[anItem episode] stringValue]];
 	}
 	if ([anItem network] != nil) {
 		[taskArgs addObject:@"-N"];
-		[taskArgs addObject: [anItem network]];		
+		[taskArgs addObject: [anItem network]];
 	}
 	if ([anItem season] != nil) {
 		[taskArgs addObject:@"-n"];
 		[taskArgs addObject: [[anItem season] stringValue]];
 		[taskArgs addObject:@"-d"];
-		[taskArgs addObject: [[anItem season] stringValue]];		
+		[taskArgs addObject: [[anItem season] stringValue]];
 	}
 	[taskArgs addObject:@"-i"];
 	if ([[anItem type] intValue] == ItemTypeTV) {
@@ -656,23 +667,24 @@ const NSString *QMErrorDomain = @"QMErrors";
 	}else {
 		[taskArgs addObject:@"movie"];
 	}
-	
+
 	[taskArgs addObject:[anItem output]];
-	
-	
+
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [metadataTask setArguments:taskArgs];
-	
+
 	// launch
     [metadataTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"mp4tags"]];
     [metadataTask launch];
-	
+
 	if ([metadataTask isRunning]) {
-		metadataItem = [anItem retain];
+		metadataItem = anItem;
+		[metadataItem retain];
 //		metadataOutputHandle = [[NSFileHandle fileHandleForReadingAtPath:metadataLogPath] retain];
 //
-//		metadataReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2 
-//															target: self 
+//		metadataReadTimer = [[NSTimer scheduledTimerWithTimeInterval: 2
+//															target: self
 //														  selector:@selector(metadataProgressTimer:)
 //														  userInfo: nil
 //														   repeats: TRUE] retain];
@@ -680,7 +692,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 		[progressBar setIndeterminate:YES];
 		[progressBar setDoubleValue:0.0];
 	}
-	
+
 	return YES;
 }
 
@@ -691,10 +703,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if(anItem.coverArt == nil){
 		return YES;
 	}
-	
+
 	NSTask *mp4artTask = [[NSTask alloc] init];
 	NSString *tempArtPath = [[self applicationSupportDirectory] stringByAppendingPathComponent:@"coverart.jpg"];
 	if([anItem.coverArt writeToFile:tempArtPath atomically:NO] == NO){
+		[mp4artTask release];
 		return NO;
 	};
 
@@ -704,19 +717,20 @@ const NSString *QMErrorDomain = @"QMErrors";
 	[taskArgs addObject:@"--remove"];
 	[taskArgs addObject:@"--art-any"];
 	[taskArgs addObject:anItem.output];
-	
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [mp4artTask setArguments:taskArgs];
-	
+
 	// launch
     [mp4artTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"mp4art"]];
     [mp4artTask launch];
-	
+
 	while ([mp4artTask isRunning]) {
 		sleep(1);
 	}
-	
+
 	NSLog(@"art clear task ended with status %d", [mp4artTask terminationStatus]);
+	[mp4artTask release];
 
 	NSTask *mp4artAddTask = [[NSTask alloc] init];
 	[taskArgs removeAllObjects];
@@ -726,19 +740,20 @@ const NSString *QMErrorDomain = @"QMErrors";
 	[taskArgs addObject:@"--art-index"];
 	[taskArgs addObject:@"0"];
 	[taskArgs addObject:anItem.output];
-	
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [mp4artAddTask setArguments:taskArgs];
-	
+
 	// launch
     [mp4artAddTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"mp4art"]];
     [mp4artAddTask launch];
-	
+
 	while ([mp4artAddTask isRunning]) {
 		sleep(1);
 	}
-	
+
 	NSLog(@"art add task ended with status %d", [mp4artAddTask terminationStatus]);
+	[mp4artAddTask release];
 	return YES;
 }
 
@@ -747,26 +762,26 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSPipe *mp4trackStdoutPipe = [NSPipe pipe];
 	NSFileHandle *mp4trackStdoutHandle = [mp4trackStdoutPipe fileHandleForReading];
 	[mp4trackTask setStandardOutput:mp4trackStdoutPipe];
-	
+
 	// set arguments
     NSMutableArray *taskArgs = [NSMutableArray array];
 	[taskArgs addObject:@"--list"];
 	[taskArgs addObject:anItem.output];
-	
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [mp4trackTask setArguments:taskArgs];
-	
+
 	// launch
     [mp4trackTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"mp4track"]];
     [mp4trackTask launch];
-	
+
 	NSData *outputData = nil;
 	while ([mp4trackTask isRunning]) {
 		sleep(1);
 	}
-	
+
 	outputData = [mp4trackStdoutHandle readDataToEndOfFile];
-	
+
 	NSString *output = [[NSString alloc] initWithData:outputData encoding:NSASCIIStringEncoding];
 	NSArray *lines = [output componentsSeparatedByString:@"\n"];
 	NSLog(@"Found %d lines", [lines count]);
@@ -790,8 +805,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 			}
 		}
 	}
-	
+	[output release];
+	[formatter release];
+
 	NSLog(@"mp4track task ended with status %d", [mp4trackTask terminationStatus]);
+	[mp4trackTask release];
 	if([width intValue] >= 720){
 		NSLog(@"Setting hd flag to 1");
 		anItem.hdVideo = [NSNumber numberWithInt:1];
@@ -799,23 +817,25 @@ const NSString *QMErrorDomain = @"QMErrors";
 		NSLog(@"Setting hd flag to 0");
 		anItem.hdVideo = [NSNumber numberWithInt:0];
 	}
-		
+
 	return YES;
 }
 
 - (MediaItem *)mediaItemFromFile:(NSString *)path error:(NSError **) outError{
 	NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
 	MediaItem *newMediaItem;
-	
+
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	BOOL isDir = NO;
 	if (![fileManager fileExistsAtPath:path isDirectory:&isDir] || ![fileManager isReadableFileAtPath:path] || isDir){
-		NSString *errorMsg = [NSString stringWithFormat:@"%@ does not exist or is not readable", path];
-		[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-		*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:100 userInfo:errorDict] autorelease];
+		if (outError != NULL) {
+			NSString *errorMsg = [NSString stringWithFormat:@"%@ does not exist or is not readable", path];
+			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:100 userInfo:errorDict] autorelease];
+		}
 		return NO;
 	}
-	
+
 	NSString *extensionList = @"mp4,m4v";
 	NSArray *extensions = [extensionList componentsSeparatedByString:@","];
 	NSString *fileExtension = [path pathExtension];
@@ -828,45 +848,47 @@ const NSString *QMErrorDomain = @"QMErrors";
 			}
 		}
 	}
-	
+
 	if (validExtension == NO){
-		NSString *errorMsg = [NSString stringWithFormat:@"%@ does not have an allowed extension", path];
-		[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-		*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:101 userInfo:errorDict] autorelease];
-		return NO;		
+		if (outError != NULL) {
+			NSString *errorMsg = [NSString stringWithFormat:@"%@ does not have an allowed extension", path];
+			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:101 userInfo:errorDict] autorelease];
+		}
+		return NO;
 	}
-	
+
 	NSManagedObjectContext *moc = [self managedObjectContext];
 	NSEntityDescription *mediaEntity = [NSEntityDescription entityForName:@"MediaItem" inManagedObjectContext:moc];
 	if(mediaEntity){
 		newMediaItem = [[NSManagedObject alloc] initWithEntity:mediaEntity insertIntoManagedObjectContext:moc];
 		newMediaItem.output = path;
 	}
-	
+
 	NSTask *apTask = [[NSTask alloc] init];
 	NSPipe *apStdoutPipe = [NSPipe pipe];
 	NSFileHandle *apStdoutHandle = [apStdoutPipe fileHandleForReading];
 	[apTask setStandardOutput:apStdoutPipe];
-	
+
 	// set arguments
     NSMutableArray *taskArgs = [NSMutableArray array];
 	[taskArgs addObject:path];
 	[taskArgs addObject:@"-t"];
-	
+
 	NSLog(@"Starting task with arguments: %@", [taskArgs componentsJoinedByString:@" "]);
     [apTask setArguments:taskArgs];
-	
+
 	// launch
     [apTask setLaunchPath:[appResourceDir stringByAppendingPathComponent:@"AtomicParsley"]];
     [apTask launch];
-	
+
 	NSData *outputData = nil;
 	while ([apTask isRunning]) {
 		sleep(1);
 	}
-	
+
 	outputData = [apStdoutHandle readDataToEndOfFile];
-	
+
 	NSString *output = [[NSString alloc] initWithData:outputData encoding:NSASCIIStringEncoding];
 	NSArray *lines = [output componentsSeparatedByString:@"\n"];
 	NSLog(@"Found %d lines", [lines count]);
@@ -896,8 +918,12 @@ const NSString *QMErrorDomain = @"QMErrors";
 			}
 		}
 	}
-	
-	return newMediaItem;	
+
+	[apTask release];
+	[output release];
+	[formatter release];
+
+	return newMediaItem;
 }
 
 - (void)stopEncode{
@@ -917,16 +943,18 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
 	QueueItem *newQueueItem;
 	MediaItem *newMediaItem;
-	
+
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	BOOL isDir = NO;
 	if (![fileManager fileExistsAtPath:path isDirectory:&isDir] || ![fileManager isReadableFileAtPath:path] || isDir){
-		NSString *errorMsg = [NSString stringWithFormat:@"%@ does not exist or is not readable", path];
-		[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-		*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:100 userInfo:errorDict] autorelease];
+		if(outError != NULL){
+			NSString *errorMsg = [NSString stringWithFormat:@"%@ does not exist or is not readable", path];
+			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:100 userInfo:errorDict] autorelease];
+		}
 		return NO;
 	}
-	
+
 	NSString *extensionList = [[NSUserDefaults standardUserDefaults] objectForKey:@"allowedExtensions"];
 	NSArray *extensions = [extensionList componentsSeparatedByString:@","];
 	NSString *fileExtension = [path pathExtension];
@@ -940,12 +968,14 @@ const NSString *QMErrorDomain = @"QMErrors";
 		}
 	}
 
-	
+
 	if (validExtension == NO){
-		NSString *errorMsg = [NSString stringWithFormat:@"%@ does not have an allowed extension", path];
-		[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-		*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:101 userInfo:errorDict] autorelease];
-		return NO;		
+		if (outError != NULL) {
+			NSString *errorMsg = [NSString stringWithFormat:@"%@ does not have an allowed extension", path];
+			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:101 userInfo:errorDict] autorelease];
+		}
+		return NO;
 	}
 
 	NSManagedObjectContext *moc = [self managedObjectContext];
@@ -962,7 +992,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 		}else {
 			newQueueItem.sortOrder = [NSNumber numberWithInt:1];
 		}
-		 
+
 		// Set output path
 		NSString *basename = [[path lastPathComponent] stringByDeletingPathExtension];
 		NSString *outputPath = [[NSUserDefaults standardUserDefaults] objectForKey:@"outputFolder"];
@@ -975,10 +1005,10 @@ const NSString *QMErrorDomain = @"QMErrors";
 			NSLog(@"Unable to process metadata");
 		}
 	}
-	
+
 	[self saveAction:nil];
 	[queueController rearrangeTable];
-	
+
 	// Start the queue if necessary
 	[self runQueue];
 	return newQueueItem;
@@ -986,7 +1016,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 
 - (BOOL) processFileName: (MediaItem *)anItem error:(NSError **) outError {
 	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-	
+
 	NSMutableArray *patterns = [[NSMutableArray alloc] init];
 	[patterns addObject:@"(.+)[sS][eE]*\\s*(\\d+)[eE]\\s*(\\d+)"];
 	[patterns addObject:@"(.+)[sS][eE]*\\s*(\\d+)\\s*-\\s*[eE]\\s*(\\d+)"];
@@ -1006,11 +1036,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 			if(showName == nil || seasonString == nil){
 				continue;
 			}
-			
+
 			// Try some cleanup on the show name
 			showName = [showName stringByReplacingOccurrencesOfString:@"." withString:@" "];
 			showName = [showName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			
+
 			[anItem setType: [NSNumber numberWithInt:ItemTypeTV]];
 			[anItem setTitle: [NSString stringWithFormat:@"%@ S%dE%d", showName, seasonString, episodeString]];
 			[anItem setShowName:showName];
@@ -1019,12 +1049,14 @@ const NSString *QMErrorDomain = @"QMErrors";
 			NSLog(@"Show: %@", showName);
 			NSLog(@"Season: %@", seasonString);
 			NSLog(@"Episode: %@", episodeString);
+			[formatter release];
 			return YES;
 		}else{
 			NSLog(@"Did not match with pattern %@", pattern);
 		}
 	}
-	
+	[formatter release];
+
 	// See if its a movie
 	[patterns removeAllObjects];
 	[patterns addObject:@"(.+)\\s*(\\d{4})"];
@@ -1035,11 +1067,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 			if(showName == nil || yearString == nil){
 				continue;
 			}
-			
+
 			// Try some cleanup on the show name
 			showName = [showName stringByReplacingOccurrencesOfString:@"." withString:@" "];
 			showName = [showName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			
+
 			[anItem setType: [NSNumber numberWithInt:ItemTypeMovie]];
 			[anItem setTitle:showName];
 			[anItem setShowName:showName];
@@ -1050,7 +1082,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 			NSLog(@"Did not match with pattern %@", pattern);
 		}
 	}
-	
+
 	//Take everything before the dash and use that as the title, assume movie
 	[patterns removeAllObjects];
 	[patterns addObject:@"(.+)\\s*-.*"];
@@ -1060,11 +1092,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 			if(showName == nil){
 				continue;
 			}
-			
+
 			// Try some cleanup on the show name
 			showName = [showName stringByReplacingOccurrencesOfString:@"." withString:@" "];
 			showName = [showName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-			
+
 			[anItem setType: [NSNumber numberWithInt:ItemTypeMovie]];
 			[anItem setTitle:showName];
 			[anItem setShowName:showName];
@@ -1077,8 +1109,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 			[anItem setType: [NSNumber numberWithInt:ItemTypeMovie]];
 		}
 	}
-	
-	
+
 	// return yes because there was no error even if we could not figure anything out
 	return YES;
 }
@@ -1087,23 +1118,30 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if ([[anItem type] intValue] == ItemTypeTV) {
 		TheTVDBProvider *ttdProvider = [[TheTVDBProvider alloc] initWithAnItem:anItem];
 		if ([ttdProvider applyMetadata] == NO) {
-			NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
-			NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
-			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
+			if(outError != NULL){
+				NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
+				NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
+				[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+				*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
+			}
+			[ttdProvider release];
 			return NO;
-		};		
+		}
+		[ttdProvider release];
 	}else{
 		TheMovieDBProvider *tmdProvider = [[TheMovieDBProvider alloc] initWithAnItem:anItem];
 		if ([tmdProvider applyMetadata] == NO) {
-			NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
-			NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
-			[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-			*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
+			if (outError != NULL) {
+				NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
+				NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
+				[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
+				*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
+			}
+			[tmdProvider release];
 			return NO;
-		};		
+		}
+		[tmdProvider release];
 	}
-	
 	return YES;
 }
 
@@ -1123,7 +1161,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSArray *fetchedObjects = [moc executeFetchRequest: request
 													  error: &anyError] ;
 	[request release] ;
-	if( fetchedObjects == nil ) { /* do something with anyError */ }	
+	if( fetchedObjects == nil ) { /* do something with anyError */ }
 	return fetchedObjects;
 }
 
@@ -1148,7 +1186,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if([fetchedObjects count] == 1){
 		return [fetchedObjects objectAtIndex:0];
 	}
-	
+
 	return nil;
 }
 
@@ -1186,7 +1224,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if([fetchedObjects count] == 1){
 		return [fetchedObjects objectAtIndex:0];
 	}
-	
+
 	return nil;
 }
 
@@ -1210,7 +1248,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 												 error: &anyError] ;
 	[request release];
 	NSLog(@"Looking up item matching: %@", condition);
-	
+
 	if ([fetchedObjects count] == 1) {
 		QueueItem *prevItem = [fetchedObjects objectAtIndex:0];
 		NSNumber *prevSortOrder = [prevItem sortOrder];
@@ -1220,7 +1258,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 		[self saveAction:nil];
 		return TRUE;
 	}
-	
+
 	return FALSE;
 }
 
@@ -1244,7 +1282,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 												 error: &anyError] ;
 	[request release];
 	NSLog(@"Looking up item matching: %@", condition);
-	
+
 	if ([fetchedObjects count] == 1) {
 		QueueItem *nextItem = [fetchedObjects objectAtIndex:0];
 		NSNumber *nextSortOrder = [nextItem sortOrder];
@@ -1254,7 +1292,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 		[self saveAction:nil];
 		return TRUE;
 	}
-	
+
 	return FALSE;
 }
 
@@ -1268,7 +1306,7 @@ const NSString *QMErrorDomain = @"QMErrors";
     NSWindow *window = [prefController window];
     if (![window isVisible])
         [window center];
-	
+
     [window makeKeyAndOrderFront: nil];
 }
 
@@ -1305,7 +1343,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 			}
 		}
 	}
-	
+
 	return enabled;
 }
 
@@ -1349,7 +1387,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	NSString *faPath = [[NSString stringWithFormat:@"file://localhost%@", path] stringByAddingPercentEscapesUsingEncoding:
 						NSASCIIStringEncoding];
 	SystemEventsFolderAction *folderAction = nil;
-	
+
 	NSLog(@"Checking path %@", faPath);
 	SBElementArray *folderActions = [sysEventsApp folderActions];
 	if ([folderActions count] > 0) {
@@ -1373,32 +1411,34 @@ const NSString *QMErrorDomain = @"QMErrors";
 		NSDictionary *props = [NSDictionary dictionaryWithObjectsAndKeys:
 							   path,            @"path",
 							   nil];
-		
-		folderAction = [[[sysEventsApp classForScriptingClass:@"folder action"] 
-												alloc] 
+
+		folderAction = [[[sysEventsApp classForScriptingClass:@"folder action"]
+												alloc]
 											   initWithProperties: props];
 		[[sysEventsApp folderActions] addObject:folderAction];
 		[folderAction setEnabled:TRUE];
 	}
-	
+
 
 	SystemEventsScript *newScript = [[[sysEventsApp classForScriptingClass:@"script"] alloc] init];
 	[[folderAction scripts] addObject:newScript];
 	[newScript setName:FolderActionScriptName];
 	[newScript setEnabled:TRUE];
+	[newScript release];
+	[folderAction release];
 }
 
 #pragma mark scripting support
 
 - (NSScriptObjectSpecifier *)objectSpecifier{
 	NSLog(@"Object specifier was called");
-	
+
 	return nil;
 }
 
 - (NSArray *)items{
 	NSLog(@"items was called");
-	
+
 	return [self queueItems];
 }
 

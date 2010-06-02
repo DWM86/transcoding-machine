@@ -7,18 +7,19 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "AppController.h"
 #import "AppWindowController.h"
 #import "QueueItem.h"
 #import "MediaItem.h"
 
-@interface QueueController : AppWindowController {
+@interface QueueController : AppWindowController <TMAppDelegate> {
 	IBOutlet NSView *statusViewHolder;
 	IBOutlet NSView *statusProgressView;
 	IBOutlet NSView *statusNoItemView;
 	IBOutlet NSProgressIndicator *statusProgressField;
 	IBOutlet NSTextField *statusField;
 	IBOutlet NSTextField *etaField;
-	
+
 	IBOutlet NSArrayController *queueItems;
 	IBOutlet NSButton *addItemButton;
 	IBOutlet NSButton *tagFileButton;
@@ -28,7 +29,7 @@
 	IBOutlet NSTableView *queueItemsTable;
 	IBOutlet NSButton *itemUpButton;
 	IBOutlet NSButton *itemDownButton;
-		
+
 	// Item window outlets
 	MediaItem *editingItem;
 	IBOutlet NSWindow *itemWindow;
@@ -52,7 +53,7 @@
 	IBOutlet NSButton *itemSaveButton;
 	IBOutlet NSButton *itemCancelButton;
 	IBOutlet NSButton *itemProcess;
-	
+
 	// Tag File window
 	MediaItem *tagItem;
 	IBOutlet NSWindow *tagFileWindow;
@@ -74,7 +75,7 @@
 	IBOutlet NSButton *tagWriteButton;
 	IBOutlet NSButton *tagCancelButton;
 	IBOutlet NSButton *tagUpdateButton;
-	
+
 }
 
 @property (readonly) NSArray *queueItems;
@@ -85,8 +86,9 @@
 - (id)initWithController: (AppController *)controller;
 - (IBAction) browseInput: (id) sender;
 - (void)     browseInputDone: (NSSavePanel *) sheet
-				   returnCode: (int) returnCode 
+				   returnCode: (int) returnCode
 				  contextInfo: (void *) contextInfo;
+- (void) metadataDidComplete: (MediaItem *) anItem;
 
 
 // Item window functions
@@ -98,7 +100,7 @@
 - (IBAction)writeMetadata: (id)sender;
 - (IBAction) browseOutput: (id) sender;
 - (void)     browseOutputDone: (NSSavePanel *) sheet
-				   returnCode: (int) returnCode 
+				   returnCode: (int) returnCode
 				  contextInfo: (void *) contextInfo;
 
 // Tag window functions

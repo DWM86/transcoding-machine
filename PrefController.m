@@ -170,7 +170,6 @@
 			  returnCode: (int) returnCode
 			 contextInfo: (void *) contextInfo{
     if( returnCode == NSOKButton ){
-		NSError *error;
 		if (contextInfo == browseMonitoredButton) {
 			[monitoredFolderField setStringValue:[sheet directory]];
 		}else{
