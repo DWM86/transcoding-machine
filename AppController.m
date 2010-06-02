@@ -616,13 +616,11 @@ const NSString *QMErrorDomain = @"QMErrors";
 	if ([anItem episodeId] != [NSString string]) {
 		[taskArgs addObject:@"-o"];
 		[taskArgs addObject: [anItem episodeId]];
-		[taskArgs addObject:@"-I"];
-		[taskArgs addObject: [anItem episodeId]];
 	}
-//	if ([anItem hdVideo] != nil) {
-//		[taskArgs addObject:@"-H"];
-//		[taskArgs addObject: [[anItem hdVideo] stringValue]];
-//	}
+	if ([anItem hdVideo] != nil) {
+		[taskArgs addObject:@"-H"];
+		[taskArgs addObject: [[anItem hdVideo] stringValue]];
+	}
 	if ([anItem title] != nil) {
 		[taskArgs addObject:@"-s"];
 		[taskArgs addObject: [anItem title]];
@@ -639,7 +637,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 	}
 	if ([anItem summary] != nil) {
 		[taskArgs addObject:@"-m"];
-		[taskArgs addObject: [anItem summary]];
+		[taskArgs addObject: [anItem longDescription]];
 	}
 	if ([anItem longDescription] != nil) {
 		[taskArgs addObject:@"-l"];
