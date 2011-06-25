@@ -17,25 +17,24 @@
 
 @implementation TheMovieDBProvider
 
-- (BOOL)applyMetadata{
+- (void)applyMetadata{
 	// We only handle Movies
 	if ([[item type] intValue] != ItemTypeMovie) {
-		return NO;
+		return;
 	}
 	
 	if ([item title] == nil) {
-		return YES;
+		return;
 	}
 	
 	if ([self searchMovie] == NO){
-		return NO;
+		return;
 	}
 	
 	if ([self getMovieInfo] == NO){
-		return NO;
+		return;
 	}
 		
-	return YES;
 }
 
 - (void)dealloc{

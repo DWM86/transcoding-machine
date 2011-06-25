@@ -8,44 +8,30 @@
 
 #import "TheTVDBProvider.h"
 
-@interface TheTVDBProvider (hidden) 
-- (BOOL)getMirrorUrl;
-- (BOOL)getLastUpdateTime;
-- (BOOL)getSeriesId;
-- (BOOL)getSeriesInfo;
-- (BOOL)getEpisodeInfo;
-@end
-
 
 @implementation TheTVDBProvider
+@synthesize currentState;
+@synthesize currentResponse;
 
-- (BOOL)applyMetadata{
+- (id)initWithAnItem:(MediaItem *)anItem{
+    self = [super initWithAnItem:anItem];
+    if( !self ){
+        return nil;
+    }
+	
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	NSLog(@"currentResponse has %d bytes of data", [self.currentResponse length]);
+	self.currentState = 0;
+	return self;
+}
+
+- (void)applyMetadata{
 	// We only handle TV shows
 	if ([[item type] intValue] != ItemTypeTV ) {
-		return NO;
+		return;
 	}
 	
-	if ([self getMirrorUrl] == NO){
-		return NO;
-	}
-	
-	if ([self getLastUpdateTime] == NO){
-		return NO;
-	}
-
-	if ([self getSeriesId] == NO){
-		return NO;
-	}
-	
-	if ([self getSeriesInfo] == NO){
-		return NO;
-	}
-
-	if ([self getEpisodeInfo] == NO){
-		return NO;
-	}
-
-	return YES;
+	[self getMirrorUrl];
 }
 
 - (void)dealloc{
@@ -55,116 +41,102 @@
 	[super dealloc];
 }
 
-@end
-
-@implementation TheTVDBProvider (hidden)
-
-- (BOOL)getMirrorUrl{
-	NSXMLDocument *doc;
-	NSArray *mirrors;
+- (void)getMirrorUrl{
 	NSString *apiKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"ttdApiKey"];
 	NSString *urlString = [NSString stringWithFormat:@"http://www.thetvdb.com/api/%@/mirrors.xml", apiKey];
 	NSLog(@"Downloading mirrors from %@", urlString);
 	NSURL *url = [NSURL URLWithString:urlString];
-
+	
 	NSURLRequest *urlRequest = [NSURLRequest requestWithURL:url 
 												cachePolicy:NSURLRequestReturnCacheDataElseLoad
 											timeoutInterval:30];
 	
-	NSData *urlData;
-	NSURLResponse *response;
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	self.currentState = TTDBStateMirror;
+	[NSURLConnection connectionWithRequest:urlRequest delegate:self];
+}
+
+- (void)processMirrorUrlData: (NSString *) responseString{
 	NSError *error;
-	urlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
-	if(!urlData){
-		NSLog(@"Error getting mirrors: %@", error);
-		return NO;
-	}
+	NSLog(@"Current response\n%@", responseString);
 	
-	doc = [[NSXMLDocument alloc] initWithData:urlData options:0 error:&error];
+	NSXMLDocument *doc = [[NSXMLDocument alloc] initWithData: [responseString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
 	NSLog(@"Mirror Document\n%@", doc);
 	if(!doc){
 		NSLog(@"Error processing xml: %@", error);
-		return NO;
+		return;
 	}
 	
-	mirrors = [[doc nodesForXPath:@"Mirrors/Mirror" error:&error] retain];
+	NSArray *mirrors = [[doc nodesForXPath:@"Mirrors/Mirror" error:&error] retain];
 	if(!mirrors){
 		NSLog(@"Error extracting mirrors: %@", error);
-		return NO;
+		return;
 	}
 	
 	for (NSXMLNode *node in mirrors) {
 		NSArray *mpNodes = [node nodesForXPath:@"mirrorpath" error:&error];
 		if(!mpNodes){
 			NSLog(@"Error extracting mirrorpath: %@", error);
-			return NO;
+			return;
 		}
 		
 		if([mpNodes count] > 0){
 			mirrorUrl = [[[mpNodes objectAtIndex:0] stringValue] retain];
 			NSLog(@"Using mirror url: %@", mirrorUrl);
-			return YES;
+			[self getLastUpdateTime];
+			return;
 		}
-		
 	}
 	
-	return NO;
 }
 
-- (BOOL)getLastUpdateTime{
-	NSXMLDocument *doc;
-	NSArray *items;
-	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+- (void)getLastUpdateTime{
 	NSURL *url = [NSURL URLWithString:@"http://www.thetvdb.com/api/Updates.php?type=none"];
 	
+
 	NSURLRequest *urlRequest = [NSURLRequest requestWithURL:url 
 												cachePolicy:NSURLRequestReturnCacheDataElseLoad
 											timeoutInterval:30];
 	
-	NSData *urlData;
-	NSURLResponse *response;
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	self.currentState = TTDBStateUpdateTime;
+	[NSURLConnection connectionWithRequest:urlRequest delegate:self];
+
+}
+
+- (void)processLastUpdateTime: (NSString *) responseString{
+	NSXMLDocument *doc;
+	NSArray *items;
+	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
 	NSError *error;
-	urlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
-	if(!urlData){
-		NSLog(@"Error getting update time: %@", error);
-		return NO;
-	}
-	
-	doc = [[NSXMLDocument alloc] initWithData:urlData options:0 error:&error];
+	doc = [[NSXMLDocument alloc] initWithData:[responseString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
 	NSLog(@"Last Update Document\n%@", doc);
 	if(!doc){
 		NSLog(@"Error processing xml: %@", error);
-		return NO;
 	}
 	
 	items = [[doc nodesForXPath:@"Items" error:&error] retain];
 	if(!items){
 		NSLog(@"Error extracting items: %@", error);
-		return NO;
 	}
 	
 	for (NSXMLNode *node in items) {
 		NSArray *timeNodes = [node nodesForXPath:@"Time" error:&error];
 		if(!timeNodes){
 			NSLog(@"Error extracting Time: %@", error);
-			return NO;
 		}
 		
 		if([timeNodes count] > 0){
 			lastUpdateTime = [[formatter numberFromString:[[timeNodes objectAtIndex:0] stringValue]] intValue];
 			NSLog(@"Using last update time: %d", lastUpdateTime);
-			return YES;
+			[self getSeriesId];
 		}
 		
 	}
 	
-	return NO;
 }
 
-- (BOOL)getSeriesId{
-	NSXMLDocument *doc;
-	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-	NSArray *series;
+- (void)getSeriesId{
 	NSString *urlString = [NSString stringWithFormat:@"http://www.thetvdb.com/api/GetSeries.php?seriesname=%@", [[item showName] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 	NSLog(@"Downloading series from %@", urlString);
 	NSURL *url = [NSURL URLWithString:urlString];
@@ -173,48 +145,51 @@
 												cachePolicy:NSURLRequestReturnCacheDataElseLoad
 											timeoutInterval:30];
 	
-	NSData *urlData;
-	NSURLResponse *response;
-	NSError *error;
-	urlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
-	if(!urlData){
-		NSLog(@"Error getting series: %@", error);
-		return NO;
-	}
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	self.currentState = TTDBStateSeriesId;
+	[NSURLConnection connectionWithRequest:urlRequest delegate:self];
 	
-	doc = [[NSXMLDocument alloc] initWithData:urlData options:0 error:&error];
+}
+
+- (void)processSeriesId: (NSString *) responseString{
+	NSXMLDocument *doc;
+	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+	NSArray *series;
+	NSError *error;
+
+	doc = [[NSXMLDocument alloc] initWithData:[responseString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
 	NSLog(@"Series Document\n%@", doc);
 	if(!doc){
 		NSLog(@"Error processing xml: %@", error);
-		return NO;
+		return;
 	}
 	
 	series = [[doc nodesForXPath:@"Data/Series" error:&error] retain];
 	if(!series || [series count] == 0){
 		NSLog(@"Error extracting series: %@", error);
-		return NO;
+		return;
 	}
-	
+
+	NSLog(@"Recieved %d series ids", [series count]);
 	for (NSXMLNode *node in series) {
 		NSArray *seriesIdNodes = [node nodesForXPath:@"seriesid" error:&error];
 		if(!seriesIdNodes){
 			NSLog(@"Error extracting seriesid: %@", error);
-			return NO;
+			return;
 		}
 		
 		if([seriesIdNodes count] > 0){
 			seriesId = [[formatter numberFromString:[[seriesIdNodes objectAtIndex:0] stringValue]] intValue];
 			NSLog(@"Using series id: %d", seriesId);
-			return YES;
+			[self getSeriesInfo];
+			return;
 		}
 		
 	}
 	
-	return NO;
 }
 
-- (BOOL)getSeriesInfo{
-	NSXMLDocument *doc;
+- (void)getSeriesInfo{
 	NSString *apiKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"ttdApiKey"];
 	NSString *urlString = [NSString stringWithFormat:@"http://www.thetvdb.com/api/%@/series/%d/en.xml", apiKey, seriesId];
 	NSLog(@"Downloading series info from %@", urlString);
@@ -224,33 +199,31 @@
 												cachePolicy:NSURLRequestReturnCacheDataElseLoad
 											timeoutInterval:30];
 	
-	NSData *urlData;
-	NSURLResponse *response;
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	self.currentState = TTDBStateSeriesInfo;
+	[NSURLConnection connectionWithRequest:urlRequest delegate:self];
+}
+
+- (void)processSeriesInfo: (NSString *) responseString{
+	NSXMLDocument *doc;
 	NSError *error;
-	urlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
-	if(!urlData){
-		NSLog(@"Error getting series info: %@", error);
-		return NO;
-	}
-	
-	doc = [[NSXMLDocument alloc] initWithData:urlData options:0 error:&error];
+	doc = [[NSXMLDocument alloc] initWithData:[responseString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
 	NSLog(@"Series Document\n%@", doc);
 	if(!doc){
 		NSLog(@"Error processing xml: %@", error);
-		return NO;
+		return;
 	}
 	
 	[item setShowName: [self stringFromNode:doc usingXPath:@"Data/Series/SeriesName"]];
-
+	
 	[item setSummary: [self stringFromNode:doc usingXPath:@"Data/Series/Overview"]];
 	
 	[item setNetwork: [self stringFromNode:doc usingXPath:@"Data/Series/Network"]];
 	
-	return YES;
+	[self getEpisodeInfo];
 }
 
-- (BOOL)getEpisodeInfo{
-	NSXMLDocument *doc;
+- (void)getEpisodeInfo{
 	NSString *apiKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"ttdApiKey"];
 	NSString *urlString = [NSString stringWithFormat:@"http://www.thetvdb.com/api/%@/series/%d/default/%d/%d/en.xml", apiKey, seriesId, [[item season] intValue], [[item episode] intValue]];
 	NSLog(@"Downloading episode info from %@", urlString);
@@ -260,28 +233,28 @@
 												cachePolicy:NSURLRequestReturnCacheDataElseLoad
 											timeoutInterval:30];
 	
-	NSData *urlData;
-	NSURLResponse *response;
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	self.currentState = TTDBStateEpisodeInfo;
+	[NSURLConnection connectionWithRequest:urlRequest delegate:self];
+}
+
+- (void)processEpisodeInfo: (NSString *) responseString{
+	NSXMLDocument *doc;
 	NSError *error;
-	urlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
-	if(!urlData){
-		NSLog(@"Error getting episode info: %@", error);
-		return NO;
-	}
-	
-	doc = [[NSXMLDocument alloc] initWithData:urlData options:0 error:&error];
+
+	doc = [[NSXMLDocument alloc] initWithData:[responseString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
 	NSLog(@"Episode Document\n%@", doc);
 	if(!doc){
 		NSLog(@"Error processing xml: %@", error);
-		return NO;
+		return;
 	}
-		
+	
 	[item setLongDescription: [self stringFromNode:doc usingXPath:@"Data/Episode/Overview"]];
 	
 	[item setTitle: [self stringFromNode:doc usingXPath:@"Data/Episode/EpisodeName"]];
 	
 	[item setReleaseDate: [self stringFromNode:doc usingXPath:@"Data/Episode/FirstAired"]];
-
+	
 	// Download image
 	NSString *imageUrl = [self stringFromNode:doc usingXPath:@"Data/Episode/filename"];
 	if (imageUrl != nil && ![imageUrl isEqual:[NSString string]]) {
@@ -290,8 +263,8 @@
 		NSURL *imageUrl = [NSURL URLWithString:imageUrlString];
 		
 		NSURLRequest *imageUrlRequest = [NSURLRequest requestWithURL:imageUrl 
-													cachePolicy:NSURLRequestReturnCacheDataElseLoad
-												timeoutInterval:30];
+														 cachePolicy:NSURLRequestReturnCacheDataElseLoad
+													 timeoutInterval:30];
 		NSData *imageData;
 		NSURLResponse *response;
 		imageData = [NSURLConnection sendSynchronousRequest:imageUrlRequest returningResponse:&response error:&error];
@@ -300,7 +273,45 @@
 		}
 	}
 	
-	
-	return YES;	
+	[self fireDidFinish];
 }
+
+#pragma mark -
+#pragma mark NSURLConnection Delegate Methods
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{
+	if (data == nil) {
+		NSLog(@"data is nil");
+		return;
+	}
+	NSString *dataString = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+	NSLog(@"Got Data %d bytes of data", [data length]);
+	NSLog(@"Data String:\n%@", dataString);
+	if (self.currentResponse == nil) {
+		NSLog(@"Current response is nil!");
+	}
+	[self.currentResponse appendString:dataString];
+	NSLog(@"currentResponse has %d bytes of data", [self.currentResponse length]);
+	NSLog(@"After copy:\n%@", self.currentResponse);
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection{
+	NSLog(@"currentResponse has %d bytes of data", [self.currentResponse length]);
+	NSLog(@"Current Response:\n%@", self.currentResponse);
+	if (self.currentState == TTDBStateMirror) {
+		[self processMirrorUrlData: self.currentResponse];
+	}else if (self.currentState == TTDBStateUpdateTime) {
+		[self processLastUpdateTime: self.currentResponse];
+	}else if (self.currentState == TTDBStateSeriesId) {
+		[self processSeriesId: self.currentResponse];
+	}else if (self.currentState == TTDBStateSeriesInfo) {
+		[self processSeriesInfo: self.currentResponse];
+	}else if (self.currentState == TTDBStateEpisodeInfo) {
+		[self processEpisodeInfo: self.currentResponse];
+	}
+								
+	self.currentResponse = [NSMutableString stringWithCapacity:100];
+	
+}
+#pragma mark -
+
 @end

@@ -10,6 +10,9 @@
 
 
 @implementation MetadataProvider
+@synthesize item;
+@synthesize delegate;
+
 - (id)init{
 	return nil;
 }
@@ -20,26 +23,19 @@
         return nil;
     }
 	
-	item = [anItem retain];
+	self.item = anItem;
 	return self;
-}
-
-- (MediaItem *)item{
-	return item;
-}
-
-- (void)setItem: (MediaItem *)anItem {
-	[item release];
-	item = [anItem retain];
 }
 
 - (void)dealloc{
 	[item release];
+    item = nil;
+    delegate = nil;
+
 	[super dealloc];
 }
 
-- (BOOL)applyMetadata{
-	return NO;
+- (void)applyMetadata{
 }
 
 - (NSString *)stringFromNode: (NSXMLNode *)node usingXPath: (NSString *)xpath{
@@ -53,4 +49,17 @@
 	return [[nodes objectAtIndex:0] stringValue];
 	
 }
+
+- (void)fireDidFinish{
+	if (self.delegate != nil) {
+		[self.delegate metadataProviderDidFinish:self];
+	}
+}
+
+- (void)fireHadError: (NSError *)anError{
+	if (self.delegate != nil) {
+		[self.delegate metadataProvider:self hadError:anError];
+	}	
+}
+
 @end

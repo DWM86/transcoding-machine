@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "MetadataProvider.h"
+
 @class QueueItem;
 @class QueueController;
 @class PrefController;
@@ -18,7 +20,7 @@
 @end
 
 
-@interface AppController : NSObject {
+@interface AppController : NSObject <MetadataProviderDelegate>{
 	NSUserDefaults *defaults;
 
     NSPersistentStoreCoordinator *persistentStoreCoordinator;
@@ -43,7 +45,8 @@
 	NSFileHandle *metadataOutputHandle;
 	NSTimer *metadataReadTimer;
 	MediaItem *metadataItem;
-
+	MetadataProvider *metadataProvider;
+	
 	BOOL runQueue;
 	BOOL terminating;
 
@@ -58,6 +61,7 @@
 @property (nonatomic, retain, readonly) NSManagedObjectModel *managedObjectModel;
 @property (nonatomic, retain, readonly) NSManagedObjectContext *managedObjectContext;
 @property (readonly) NSArray *queueItems;
+@property (nonatomic, retain) MetadataProvider *metadataProvider;
 
 - (id) init;
 - (IBAction) saveAction:(id)sender;
@@ -81,6 +85,9 @@
 - (BOOL) setHDFlag: (MediaItem *)anItem error:(NSError **)outError;
 
 - (MediaItem *) mediaItemFromFile:(NSString *)path error:(NSError **)outError;
+
+- (void)metadataProviderDidFinish:(MetadataProvider *)aProvider;
+- (void)metadataProvider:(MetadataProvider *)aProvider hadError:(NSError *)anError;
 
 - (BOOL) runQueue;
 - (BOOL) isEncodeRunning;

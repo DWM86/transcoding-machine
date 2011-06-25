@@ -24,6 +24,7 @@ const NSString *QMErrorDomain = @"QMErrors";
 
 @implementation AppController
 @synthesize delegate;
+@synthesize metadataProvider;
 
 - (id)init{
     self = [super init];
@@ -280,6 +281,8 @@ const NSString *QMErrorDomain = @"QMErrors";
 	[appResourceDir release];
 	[encodeStatusFile release];
 	[encodeETA release];
+	[metadataProvider release];
+    metadataProvider = nil;
     [super dealloc];
 }
 
@@ -1114,33 +1117,22 @@ const NSString *QMErrorDomain = @"QMErrors";
 
 - (BOOL) updateMetadata: (MediaItem *)anItem error:(NSError **) outError {
 	if ([[anItem type] intValue] == ItemTypeTV) {
-		TheTVDBProvider *ttdProvider = [[TheTVDBProvider alloc] initWithAnItem:anItem];
-		if ([ttdProvider applyMetadata] == NO) {
-			if(outError != NULL){
-				NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
-				NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
-				[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-				*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
-			}
-			[ttdProvider release];
-			return NO;
-		}
-		[ttdProvider release];
+		self.metadataProvider = [[[TheTVDBProvider alloc] initWithAnItem:anItem] autorelease];		
 	}else{
-		TheMovieDBProvider *tmdProvider = [[TheMovieDBProvider alloc] initWithAnItem:anItem];
-		if ([tmdProvider applyMetadata] == NO) {
-			if (outError != NULL) {
-				NSMutableDictionary *errorDict = [NSMutableDictionary dictionary];
-				NSString *errorMsg = [NSString stringWithFormat:@"Could not get metadata for item"];
-				[errorDict setObject:errorMsg forKey:NSLocalizedDescriptionKey];
-				*outError = [[[NSError alloc] initWithDomain:@"QMErrors" code:110 userInfo:errorDict] autorelease];
-			}
-			[tmdProvider release];
-			return NO;
-		}
-		[tmdProvider release];
+		self.metadataProvider = [[[TheMovieDBProvider alloc] initWithAnItem:anItem] autorelease];
 	}
+	
+	[self.metadataProvider applyMetadata];
 	return YES;
+}
+
+- (void)metadataProviderDidFinish:(MetadataProvider *)aProvider{
+	self.metadataProvider = nil;
+}
+
+- (void)metadataProvider:(MetadataProvider *)aProvider hadError:(NSError *)anError{
+	//TODO: Display error
+	self.metadataProvider = nil;
 }
 
 - (NSArray *)queueItems{
