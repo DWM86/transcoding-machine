@@ -20,7 +20,7 @@
     }
 	
 	self.currentResponse = [NSMutableString stringWithCapacity:100];
-	NSLog(@"currentResponse has %d bytes of data", [self.currentResponse length]);
+	NSLog(@"currentResponse has %lu bytes of data", [self.currentResponse length]);
 	self.currentState = 0;
 	return self;
 }

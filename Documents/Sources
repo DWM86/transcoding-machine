@@ -1,0 +1,23 @@
+==== TV Show Information ====
+thetvdb.com
+
+
+==== Movie Information ====
+themoviedb.org
+
+
+==== Torrent Feeds ====
+showrss.karmorra.info
+
+ezrss.it
+	Search RSS - http://ezrss.it/search/index.php?simple&show_name=big+bang+theory&mode=rss
+	
+BT-Chat - http://www.bt-chat.com
+	Requires login for search
+
+torrentday - http://www.torrentday.ru/
+	Requires login
+	No server search options, requires frequent polling and client side filtering
+	
+thepiratebay.org
+	No server side search rss feeds
