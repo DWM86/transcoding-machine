@@ -34,6 +34,6 @@
     }
 	
 
-    return [NSNumber numberWithInt: newValue];
+    return @(newValue);
 }
 @end

@@ -13,75 +13,46 @@
 #import "MediaItem.h"
 
 @interface QueueController : AppWindowController <TMAppDelegate> {
-	IBOutlet NSView *statusViewHolder;
-	IBOutlet NSView *statusProgressView;
-	IBOutlet NSView *statusNoItemView;
-	IBOutlet NSProgressIndicator *statusProgressField;
-	IBOutlet NSTextField *statusField;
-	IBOutlet NSTextField *etaField;
-
-	IBOutlet NSArrayController *queueItems;
-	IBOutlet NSButton *addItemButton;
-	IBOutlet NSButton *tagFileButton;
-	IBOutlet NSButton *editItemButton;
-	IBOutlet NSButton *startEndcodeButton;
-	IBOutlet NSButton *cancelEncodeButton;
-	IBOutlet NSTableView *queueItemsTable;
-	IBOutlet NSButton *itemUpButton;
-	IBOutlet NSButton *itemDownButton;
-
-	// Item window outlets
-	MediaItem *editingItem;
-	IBOutlet NSWindow *itemWindow;
-	IBOutlet NSTextField *itemInputField;
-	IBOutlet NSTextField *itemOutputField;
-	IBOutlet NSTextField *itemTitleField;
-	IBOutlet NSTextField *itemShowField;
-	IBOutlet NSTextField *itemSeasonField;
-	IBOutlet NSTextField *itemEpisodeField;
-	IBOutlet NSTextField *itemSummaryField;
-	IBOutlet NSTextField *itemDescriptionField;
-	IBOutlet NSTextField *itemReleaseDateField;
-	IBOutlet NSTextField *itemCopyrightField;
-	IBOutlet NSTextField *itemNetworkField;
-	IBOutlet NSButton *itemHDVideoButton;
-	IBOutlet NSPopUpButton *itemTypePopUp;
-	IBOutlet NSPopUpButton *itemGenrePopUp;
-	IBOutlet NSTabView *itemTabView;
-	IBOutlet NSTextField *itemMessageField;
-	IBOutlet NSImageView *itemCoverArtField;
-	IBOutlet NSButton *itemSaveButton;
-	IBOutlet NSButton *itemCancelButton;
-	IBOutlet NSButton *itemProcess;
-
-	// Tag File window
-	MediaItem *tagItem;
-	IBOutlet NSWindow *tagFileWindow;
-	IBOutlet NSTextField *tagFileField;
-	IBOutlet NSTextField *tagTitleField;
-	IBOutlet NSTextField *tagShowField;
-	IBOutlet NSTextField *tagSeasonField;
-	IBOutlet NSTextField *tagEpisodeField;
-	IBOutlet NSTextField *tagSummaryField;
-	IBOutlet NSTextField *tagDescriptionField;
-	IBOutlet NSTextField *tagReleaseDateField;
-	IBOutlet NSTextField *tagCopyrightField;
-	IBOutlet NSTextField *tagNetworkField;
-	IBOutlet NSButton *tagHDVideoButton;
-	IBOutlet NSPopUpButton *tagTypePopUp;
-	IBOutlet NSPopUpButton *tagGenrePopUp;
-	IBOutlet NSTabView *tagTabView;
-	IBOutlet NSImageView *tagCoverArtField;
-	IBOutlet NSButton *tagWriteButton;
-	IBOutlet NSButton *tagCancelButton;
-	IBOutlet NSButton *tagUpdateButton;
 
 }
 
-@property (readonly) NSArray *queueItems;
+// Progress releated properties
+@property (nonatomic, strong) IBOutlet NSView *statusViewHolder;
+@property (nonatomic, strong) IBOutlet NSView *statusProgressView;
+@property (nonatomic, strong) IBOutlet NSView *statusNoItemView;
+@property (nonatomic, strong) IBOutlet NSProgressIndicator *statusProgressField;
+@property (nonatomic, strong) IBOutlet NSTextField *statusField;
+@property (nonatomic, strong) IBOutlet NSTextField *etaField;
+
+// Queue related properties
+@property (nonatomic, strong) IBOutlet NSArrayController *queueItemController;
+@property (nonatomic, strong) IBOutlet NSButton *addItemButton;
+@property (nonatomic, strong) IBOutlet NSButton *tagFileButton;
+@property (nonatomic, strong) IBOutlet NSButton *editItemButton;
+@property (nonatomic, strong) IBOutlet NSButton *startEndcodeButton;
+@property (nonatomic, strong) IBOutlet NSButton *cancelEncodeButton;
+@property (nonatomic, strong) IBOutlet NSTableView *queueItemsTable;
+
+@property (readonly) NSArray *queueItem;
 @property (readonly) NSArray *tableSortDescriptors;
 @property (readonly) NSArray *genreList;
 @property (readonly) NSArray *typeList;
+
+// Item window properties
+@property (nonatomic, strong) MediaItem *editingItem;
+@property (nonatomic, strong) IBOutlet NSWindow *itemWindow;
+@property (nonatomic, strong) IBOutlet NSTextField *itemInputField;
+@property (nonatomic, strong) IBOutlet NSTextField *itemOutputField;
+@property (nonatomic, strong) IBOutlet NSButton *itemSaveButton;
+@property (nonatomic, strong) IBOutlet NSButton *itemCancelButton;
+
+// Tag window properties
+@property (nonatomic, strong) MediaItem *tagItem;
+@property (nonatomic, strong) IBOutlet NSWindow *tagFileWindow;
+@property (nonatomic, strong) IBOutlet NSButton *tagWriteButton;
+@property (nonatomic, strong) IBOutlet NSButton *tagCancelButton;
+
+
 
 - (id)initWithController: (AppController *)controller;
 - (IBAction) browseInput: (id) sender;
@@ -92,11 +63,9 @@
 
 
 // Item window functions
-- (void)populateItemWindowFields: (MediaItem *)anItem;
 - (IBAction)showItemWindow: (id)sender;
 - (IBAction)updateMetadata: (id)sender;
 - (IBAction)closeItemWindow: (id)sender;
-- (BOOL)saveItem;
 - (IBAction)writeMetadata: (id)sender;
 - (IBAction) browseOutput: (id) sender;
 - (void)     browseOutputDone: (NSSavePanel *) sheet
@@ -104,9 +73,7 @@
 				  contextInfo: (void *) contextInfo;
 
 // Tag window functions
-- (void)populateTagWindowFields: (MediaItem *)anItem;
 - (IBAction)updateTagMetadata: (id)sender;
-- (BOOL)saveTagItem;
 - (IBAction)closeTagWindow: (id)sender;
 
 // Queue Window functions

@@ -42,10 +42,21 @@
 }
 
 -(NSString *)episodeId{
-	if ([self type] == [NSNumber numberWithInt:ItemTypeTV]) {
+	if ([self.type isEqualToNumber:@ItemTypeTV]) {
 		return [NSString stringWithFormat:@"%d%.2d", [[self season] intValue], [[self episode] intValue]];
 	}
 	return [NSString string];
 }
 
+- (NSImage *)coverArtImage {
+	if (self.coverArt) {
+		return [[NSImage alloc] initWithData:self.coverArt];
+	}
+	
+	return nil;
+}
+
++ (NSSet *)keyPathsForValuesAffectingCoverArtImage {
+	return [NSSet setWithObject:@"coverArt"];
+}
 @end

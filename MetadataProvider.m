@@ -10,8 +10,6 @@
 
 
 @implementation MetadataProvider
-@synthesize item;
-@synthesize delegate;
 
 - (id)init{
 	return nil;
@@ -27,26 +25,18 @@
 	return self;
 }
 
-- (void)dealloc{
-	[item release];
-    item = nil;
-    delegate = nil;
-
-	[super dealloc];
-}
-
 - (void)applyMetadata{
 }
 
 - (NSString *)stringFromNode: (NSXMLNode *)node usingXPath: (NSString *)xpath{
 	NSArray *nodes;
 	NSError *error;
-	nodes = [[node nodesForXPath:xpath error:&error] retain];
+	nodes = [node nodesForXPath:xpath error:&error];
 	if(!nodes || [nodes count] == 0){
 		NSLog(@"Error extracting string from xpath %@: %@", xpath, error);
 		return [NSString string];
 	}
-	return [[nodes objectAtIndex:0] stringValue];
+	return [nodes[0] stringValue];
 	
 }
 

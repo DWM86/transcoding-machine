@@ -19,11 +19,11 @@
 
 - (void)applyMetadata{
 	// We only handle Movies
-	if ([[item type] intValue] != ItemTypeMovie) {
+	if ([[self.item type] intValue] != ItemTypeMovie) {
 		return;
 	}
 	
-	if ([item title] == nil) {
+	if ([self.item title] == nil) {
 		return;
 	}
 	
@@ -37,10 +37,6 @@
 		
 }
 
-- (void)dealloc{
-	[super dealloc];
-}
-
 @end
 
 @implementation TheMovieDBProvider (hidden)
@@ -49,7 +45,7 @@
 	NSXMLDocument *doc;
 	NSArray *movies;
 	NSString *apiKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"tmdApiKey"];
-	NSString *urlString = [NSString stringWithFormat:@"http://api.themoviedb.org/2.1/Movie.search/en/xml/%@/%@", apiKey, [[item title] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+	NSString *urlString = [NSString stringWithFormat:@"http://api.themoviedb.org/2.1/Movie.search/en/xml/%@/%@", apiKey, [[self.item title] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 	NSLog(@"Searching for movie with url %@", urlString);
 	NSURL *url = [NSURL URLWithString:urlString];
 	
@@ -73,7 +69,7 @@
 		return NO;
 	}
 	
-	movies = [[doc nodesForXPath:@"OpenSearchDescription/movies/movie" error:&error] retain];
+	movies = [doc nodesForXPath:@"OpenSearchDescription/movies/movie" error:&error];
 	if(!movies){
 		NSLog(@"Error extracting movies from result: %@", error);
 		return NO;
@@ -82,16 +78,16 @@
 	for (NSXMLNode *node in movies) {
 		// Assume first is best for now
 		NSString *title = [self stringFromNode:doc usingXPath:@"OpenSearchDescription/movies/movie[1]/name"];
-		item.showName = title;
-		item.title = title;
+		self.item.showName = title;
+		self.item.title = title;
 
-		item.releaseDate = [self stringFromNode:doc usingXPath:@"OpenSearchDescription/movies/movie[1]/released"];
+		self.item.releaseDate = [self stringFromNode:doc usingXPath:@"OpenSearchDescription/movies/movie[1]/released"];
 		
 		NSString *summary = [self stringFromNode:doc usingXPath:@"OpenSearchDescription/movies/movie[1]/overview"];
-		item.summary = summary;
-		item.longDescription = summary;
+		self.item.summary = summary;
+		self.item.longDescription = summary;
 		
-		NSArray *images = [[doc nodesForXPath:@"OpenSearchDescription/movies/movie[1]/images/image" error:&error] retain];
+		NSArray *images = [doc nodesForXPath:@"OpenSearchDescription/movies/movie[1]/images/image" error:&error];
 		if(!images || [images count] == 0){
 			NSLog(@"Could not find any images for movie");
 		}
@@ -102,17 +98,19 @@
 			NSString *tempUrl;
 			NSString *nodeString = [imageNode XMLString];
 
-			if ([nodeString getCapturesWithRegexAndReferences:@"type=\"([a-zA-Z0-9]+)\".+url=\"([^\"]+)\".+size=\"([a-zA-Z0-9]+)\"", @"${1}", &imageType, @"${2}", &tempUrl, @"${3}", &imageSize, nil]) {
-				NSLog(@"Found image size %@ with a type of %@", imageSize, imageType);
-				if([imageType isEqualToString:@"poster"]){
-					if([imageSize isEqualToString:@"original"]){
-						imageUrlString = tempUrl;
-						break;
-					}else if([imageType isEqualToString:@"cover"] && imageUrlString == nil){
-						imageUrlString = tempUrl;
-					}
-				}
-			}
+			//TODO: Fix this
+			
+//			if ([nodeString getCapturesWithRegexAndReferences:@"type=\"([a-zA-Z0-9]+)\".+url=\"([^\"]+)\".+size=\"([a-zA-Z0-9]+)\"", @"${1}", &imageType, @"${2}", &tempUrl, @"${3}", &imageSize, nil]) {
+//				NSLog(@"Found image size %@ with a type of %@", imageSize, imageType);
+//				if([imageType isEqualToString:@"poster"]){
+//					if([imageSize isEqualToString:@"original"]){
+//						imageUrlString = tempUrl;
+//						break;
+//					}else if([imageType isEqualToString:@"cover"] && imageUrlString == nil){
+//						imageUrlString = tempUrl;
+//					}
+//				}
+//			}
 		}
 		
 		NSLog(@"Using Image URL: %@", imageUrlString);
@@ -127,7 +125,7 @@
 			NSURLResponse *response;
 			imageData = [NSURLConnection sendSynchronousRequest:imageUrlRequest returningResponse:&response error:&error];
 			if (imageData) {
-				[item setCoverArt:imageData];
+				[self.item setCoverArt:imageData];
 			}
 			
 		}

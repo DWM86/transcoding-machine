@@ -10,10 +10,11 @@
 
 @class AppController;
 
-@interface AppWindowController : NSWindowController {
-	AppController *appController;
-	NSManagedObjectContext *managedObjectContext;
+@interface AppWindowController : NSWindowController <NSWindowDelegate> {
 }
+@property (readonly) AppController *appController;
+@property (readonly) NSManagedObjectContext *managedObjectContext;
+
 - (id)initWithController:(AppController *)controller withNibName:(NSString *)nibName;
 - (id)initWithController:(AppController *)controller;
 @end

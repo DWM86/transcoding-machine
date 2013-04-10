@@ -9,23 +9,31 @@
 #import "AppWindowController.h"
 #import "AppController.h"
 
+@interface AppWindowController ()
+@property (nonatomic, strong) AppController *appController;
+
+@end
+
 @implementation AppWindowController
 - (id)initWithController: (AppController *)controller withNibName: (NSString *)nibName {
 	if (self = [super initWithWindowNibName:nibName]){
-		appController = controller;
+		self.appController = controller;
 	}
 	return self;
 }
 
 - (id)initWithController: (AppController *)controller {
 	if (self = [super init]){
-		appController = controller;
+		self.appController = controller;
 	}
 	return self;
 }
 
 - (NSManagedObjectContext *)managedObjectContext{
-	return [appController managedObjectContext];
+	return [self.appController managedObjectContext];
 }
 
+- (NSUndoManager *)windowWillReturnUndoManager:(NSWindow *)window{
+	return [self.appController windowWillReturnUndoManager:window];
+}
 @end

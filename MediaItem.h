@@ -7,6 +7,7 @@
 //
 
 #import <CoreData/CoreData.h>
+#import "NSManagedObject+RevertChanges.h"
 
 #define ItemTypeTV 1
 #define ItemTypeMovie 2
@@ -39,6 +40,7 @@
 
 @property (readonly) NSString *shortName;
 @property (readonly) NSString *episodeId;
+@property (readonly) NSImage *coverArtImage;
 
 @end
 

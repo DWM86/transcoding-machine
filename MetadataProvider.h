@@ -13,8 +13,6 @@
 @protocol MetadataProviderDelegate;
 
 @interface MetadataProvider : NSObject {
-	MediaItem *item;
-	id<MetadataProviderDelegate> delegate;
 }
 @property (nonatomic, retain) MediaItem *item;
 @property (nonatomic, assign) id<MetadataProviderDelegate> delegate;

@@ -17,7 +17,7 @@
 	
 	AppController *appController = [NSApp delegate];
 	NSError *anError;
-	SInt32	theError = noErr;
+	NSInteger	theError = noErr;
 	id		directParameter = [self directParameter];
 	if([appController addFileToQueue:directParameter error:&anError] == nil){
 		theError = [anError code];

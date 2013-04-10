@@ -13,6 +13,7 @@
 @implementation PrefController
 
 + (void)registerUserDefaults: (NSString *)appSupportDir {
+	//TODO: Change to use NSSearchPathForDirectoriesInDomains
     NSString *desktopDirectory =  [@"~/Desktop/" stringByExpandingTildeInPath];
 
 	// Make sure the debug level and log files settings are actually in the pref file
@@ -25,17 +26,14 @@
 		[[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"debugLevel"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 	}
-    [[NSUserDefaults standardUserDefaults] registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
-				@"NO",              @"folderActionInstalled",
-				desktopDirectory,   @"monitoredFolder",
-				desktopDirectory,   @"outputFolder",
-				@"avi,m4v,mkv,mp4",	@"allowedExtensions",
-				@"87C0BA77037B5012", @"ttdApiKey",
-				@"329edec1b30392adcc0a28f351b09336", @"tmdApiKey",
-				@"/Applications/HandBrakeCLI",	@"transcoderPath",
-				@"-i |INPUT| -o |OUTPUT| -e x264 -q 0.589999973773956 -a 1,1 -E faac,ac3 -B 160,auto -R 48,Auto -6 dpl2,auto -f mp4 -4 -X 1280 -P --strict-anamorphic -x level=30:cabac=0:ref=3:mixed-refs=1:bframes=6:weightb=1:direct=auto:no-fast-pskip=1:me=umh:subq=7:analyse=all",
-									@"transcoderArgs",
-				nil]];
+    [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"folderActionInstalled": @"NO",
+				@"monitoredFolder": desktopDirectory,
+				@"outputFolder": desktopDirectory,
+				@"allowedExtensions": @"avi,m4v,mkv,mp4",
+				@"ttdApiKey": @"87C0BA77037B5012",
+				@"tmdApiKey": @"329edec1b30392adcc0a28f351b09336",
+				@"transcoderPath": @"/Applications/HandBrakeCLI",
+				@"transcoderArgs": @"-i |INPUT| -o |OUTPUT| -e x264  -q 20.0 -a 1,1 -E faac,ac3 -B 160,160 -6 dpl2,auto -R 48,Auto -D 0.0,0.0 -f mp4 -4 -X 1280 --loose-anamorphic -m -x cabac=0:ref=2:me=umh:b-adapt=2:weightb=0:trellis=0:weightp=0"}];	
 }
 
 - (id)initWithController:(AppController *)controller {
@@ -99,9 +97,9 @@
 
 	if(![oldWatchedFolder isEqual:newWatchedFolder]){
 		// Remove folder action
-		[appController disableFolderActionOn:oldWatchedFolder];
+		[self.appController disableFolderActionOn:oldWatchedFolder];
 		// add new folder action
-		[appController enableFolderActionOn:newWatchedFolder];
+		[self.appController enableFolderActionOn:newWatchedFolder];
 	}
 	[standardDefaults setObject:[monitoredFolderField stringValue] forKey:@"monitoredFolder"];
 	[standardDefaults setObject:[outputFolderField stringValue] forKey:@"outputFolder"];
@@ -125,9 +123,9 @@
 	BOOL isDir;
 	if ([fileManager fileExistsAtPath:newWatchedFolder isDirectory:&isDir] && isDir){
 		if ([[monitoringButton title] isEqual:@"Enable"]) {
-			[appController enableFolderActionOn: newWatchedFolder];
+			[self.appController enableFolderActionOn: newWatchedFolder];
 		}else{
-			[appController disableFolderActionOn:newWatchedFolder];
+			[self.appController disableFolderActionOn:newWatchedFolder];
 		}
 		[self setMonitorFields];
 	}
@@ -136,7 +134,7 @@
 - (void)setMonitorFields{
 	NSString *watchedFolder = [monitoredFolderField stringValue];
 
-	if ([appController areFolderActionsEnabledOn:watchedFolder]) {
+	if ([self.appController areFolderActionsEnabledOn:watchedFolder]) {
 		[enabledLabel setStringValue:@"Monitoring active"];
 		[monitoringButton setTitle:@"Disable"];
 	}else{
@@ -163,14 +161,14 @@
 							 file: nil
 				   modalForWindow: [self window] modalDelegate: self
 				   didEndSelector: @selector( browseDirectoryDone:returnCode:contextInfo: )
-					  contextInfo: sender];
+					  contextInfo: (__bridge void *)(sender)];
 }
 
 - (void) browseDirectoryDone: (NSSavePanel *) sheet
 			  returnCode: (int) returnCode
 			 contextInfo: (void *) contextInfo{
     if( returnCode == NSOKButton ){
-		if (contextInfo == browseMonitoredButton) {
+		if (contextInfo == (__bridge void *)(browseMonitoredButton)) {
 			[monitoredFolderField setStringValue:[sheet directory]];
 		}else{
 			[outputFolderField setStringValue:[sheet directory]];

@@ -20,24 +20,22 @@
         NSAssert([self window], @"[QueueController init] window outlet is not connected in Preferences.nib");
 
 		controller.delegate = self;
-		[statusViewHolder addSubview:statusNoItemView];
-		[[self window] registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+		[self.statusViewHolder addSubview:self.statusNoItemView];
+		[[self window] registerForDraggedTypes:@[NSFilenamesPboardType]];
     }
     return self;
 }
 
 - (void)awakeFromNib{
-	NSLog(@"I have awoke from the nib");
-
-	[queueItemsTable setDoubleAction:@selector(editRow:)];
+	[self.queueItemsTable setDoubleAction:@selector(editRow:)];
 }
 
 - (NSArray *)genreList{
-	return [NSArray arrayWithObjects:@"Comedy", @"Drama", @"Nonfiction", @"Other", @"Sports", nil];
+	return @[@"Comedy", @"Drama", @"Nonfiction", @"Other", @"Sports"];
 }
 
 - (NSArray *)typeList{
-	return [NSArray arrayWithObjects:@"TV Show", @"Movie", nil];
+	return @[@"TV Show", @"Movie"];
 }
 
 - (IBAction) browseInput: (id) sender{
@@ -47,7 +45,7 @@
 	[panel setCanChooseDirectories:FALSE];
 
 	NSString *panelDir = nil;
-	if (sender == addItemButton) {
+	if (sender == self.addItemButton) {
 		panelDir = [[NSUserDefaults standardUserDefaults] stringForKey:@"monitoredFolder"];
 	}else{
 		panelDir = [[NSUserDefaults standardUserDefaults] stringForKey:@"tagFileFolder"];
@@ -58,7 +56,7 @@
 							 file: nil
 				   modalForWindow: [self window] modalDelegate: self
 				   didEndSelector: @selector( browseInputDone:returnCode:contextInfo: )
-					  contextInfo: sender];
+					  contextInfo: (__bridge void *)(sender)];
 }
 
 - (void) browseInputDone: (NSSavePanel *) sheet
@@ -66,19 +64,19 @@
 			 contextInfo: (void *) contextInfo{
     if( returnCode == NSOKButton ){
 		NSError *error;
-		if (contextInfo == addItemButton) {
-			[appController addFileToQueue:[sheet filename] error:&error];
-		}else if (contextInfo == tagFileButton) {
+		if (contextInfo == (__bridge void *)(self.addItemButton)) {
+			[self.appController addFileToQueue:[sheet filename] error:&error];
+		}else if (contextInfo == (__bridge void *)(self.tagFileButton)) {
 			NSLog(@"browse completed for tag file button");
 			NSUserDefaults *standardDefaults = [NSUserDefaults standardUserDefaults];
 			[standardDefaults setObject:[sheet directory] forKey:@"tagFileFolder"];
-			tagItem = [[appController mediaItemFromFile:[sheet filename] error:&error] retain];
-			if (tagItem == nil) {
+			self.tagItem = [self.appController mediaItemFromFile:[sheet filename] error:&error];
+			if (self.tagItem == nil) {
 				[NSApp presentError:error];
 			}else {
-				[appController updateMetadata:tagItem error:&error];
-				[self populateTagWindowFields:tagItem];
-				[tagFileWindow makeKeyAndOrderFront:nil];
+				[self.appController updateMetadata:self.tagItem error:&error];
+//				[self populateTagWindowFields:self.tagItem];
+				[self.tagFileWindow makeKeyAndOrderFront:nil];
 			}
 		}
 
@@ -86,179 +84,62 @@
 }
 
 - (void) metadataDidComplete: (MediaItem *) anItem{
-	if (tagItem != nil) {
-		NSManagedObjectContext *moc = [appController managedObjectContext];
-		[moc deleteObject:tagItem];
+	if (self.tagItem != nil) {
+		NSManagedObjectContext *moc = [self.appController managedObjectContext];
+		[moc deleteObject:self.tagItem];
 
-		[appController saveAction:nil];
+		[self.appController saveAction:nil];
+		self.tagItem = nil;
 	}
-	[tagFileButton setEnabled:YES];
+	[self.tagFileButton setEnabled:YES];
 }
 
-#pragma mark Item Window Methods
-
-- (void)populateItemWindowFields: (MediaItem *)anItem {
-	NSString *input = [anItem input];
-	if (input == nil) {
-		input = [NSString string];
-	}
-	[itemInputField setStringValue:input];
-
-	NSString *output = [anItem output];
-	if (output == nil) {
-		output = [NSString string];
-	}
-	[itemOutputField setStringValue:output];
-
-	NSString *title = [anItem title];
-	if (title == nil) {
-		title = [NSString string];
-	}
-	[itemTitleField setStringValue:title];
-
-	NSString *showName = [anItem showName];
-	if (showName == nil) {
-		showName = [NSString string];
-	}
-	[itemShowField setStringValue:showName];
-
-	NSString *season = [[anItem season] stringValue];
-	if (season == nil) {
-		season = [NSString string];
-	}
-	[itemSeasonField setStringValue:season];
-
-	NSString *episode = [[anItem episode] stringValue];
-	if (episode == nil) {
-		episode = [NSString string];
-	}
-	[itemEpisodeField setStringValue:episode];
-
-	NSString *summary = [anItem summary];
-	if (summary == nil) {
-		summary = [NSString string];
-	}
-	[itemSummaryField setStringValue:summary];
-
-	NSImage *coverArt = [[NSImage alloc] initWithData:[anItem coverArt]];
-	[itemCoverArtField setImage:coverArt];
-
-	NSString *longDesc = [anItem longDescription];
-	if (longDesc == nil) {
-		longDesc = [NSString string];
-	}
-	[itemDescriptionField setStringValue:longDesc];
-
-	NSString *copyright = [anItem copyright];
-	if (copyright == nil) {
-		copyright = [NSString string];
-	}
-	[itemCopyrightField setStringValue:copyright];
-
-	NSString *network = [anItem network];
-	if (network == nil) {
-		network = [NSString string];
-	}
-	[itemNetworkField setStringValue:network];
-
-	NSString *releaseDate = [anItem releaseDate];
-	if (releaseDate == nil) {
-		releaseDate = [NSString string];
-	}
-	[itemReleaseDateField setStringValue:releaseDate];
-
-	NSNumber *type = [anItem type];
-	[itemTypePopUp selectItemWithTitle:nil];
-	if ([type intValue] == 1) {
-		[itemTypePopUp selectItemWithTitle:@"TV Show"];
-	}else if ([type intValue] == 2) {
-		[itemTypePopUp selectItemWithTitle:@"Movie"];
-	}
-
-	[itemGenrePopUp selectItemWithTitle: [anItem genre]];
-
-	NSString *message = [anItem message];
-	if (message == nil) {
-		message = [NSString string];
-	}
-	[itemMessageField setStringValue:message];
-}
-
+#pragma mark - Item Window Methods
 - (IBAction)showItemWindow: (id)sender{
 	// Setup fields with selected object
 	// Populate item values
-	QueueItem *selectedItem = [[queueItems selectedObjects] objectAtIndex:0];
-	editingItem = selectedItem.mediaItem;
-	[self populateItemWindowFields:editingItem];
-	[itemWindow makeKeyAndOrderFront:sender];
+	QueueItem *selectedItem = [self.queueItemController selectedObjects][0];
+	if (!selectedItem) {
+		return;
+	}
+	
+	[[[self.appController managedObjectContext] undoManager] beginUndoGrouping];
+	[[[self.appController managedObjectContext] undoManager] setActionName:[NSString stringWithFormat:@"Editing of %@", selectedItem.mediaItem.shortName]];
+	self.editingItem = selectedItem.mediaItem;
+	[self.itemWindow makeKeyAndOrderFront:sender];
 }
 
 - (IBAction)closeItemWindow: (id)sender{
 	// Setup fields with selected object
-	if (sender == itemSaveButton) {
-		NSString *input = [itemInputField stringValue];
+	if (sender == self.itemSaveButton) {
+		[[[self.appController managedObjectContext] undoManager] endUndoGrouping];
+		NSString *input = [self.itemInputField stringValue];
 		// Validate the input file
 		NSFileManager *fileManager = [NSFileManager defaultManager];
 		if (![fileManager fileExistsAtPath:input] || ![fileManager isReadableFileAtPath:input]){
 			NSRunAlertPanel(@"Invalid input file", @"Invalid input file, make sure the file exists and is readable", @"Ok", nil, nil);
-			[itemInputField selectText:sender];
+			[self.itemInputField selectText:sender];
 			return;
 		}
 
 		// Save the object
-		[self saveItem];
+		[self.appController saveAction:nil];
+	}else if (sender == self.itemCancelButton) {
+		[[[self.appController managedObjectContext] undoManager] endUndoGrouping];
+		[[[self.appController managedObjectContext] undoManager] undo];
+
 	}
 
-	[itemWindow orderOut:sender];
-}
-
-- (BOOL)saveItem {
-	NSNumberFormatter *numFormatter = [NSNumberFormatter alloc];
-	if (editingItem == nil) {
-		NSLog(@"Somehow save was called without a current editingItem");
-		return NO;
-	}
-	editingItem.input = [itemInputField stringValue];
-	editingItem.output = [itemOutputField stringValue];
-	editingItem.showName = [itemShowField stringValue];
-	editingItem.title = [itemTitleField stringValue];
-	editingItem.season = [numFormatter numberFromString:[itemSeasonField stringValue]];
-	editingItem.episode = [numFormatter numberFromString:[itemEpisodeField stringValue]];
-	editingItem.summary = [itemSummaryField stringValue];
-	if ([itemCoverArtField image] != nil) {
-		editingItem.coverArt = [NSBitmapImageRep representationOfImageRepsInArray:[[itemCoverArtField image] representations]
-																usingType:NSJPEGFileType
-															   properties:nil];
-	}else{
-		editingItem.coverArt = nil;
-	}
-	editingItem.longDescription = [itemDescriptionField stringValue];
-	editingItem.copyright = [itemCopyrightField stringValue];
-	editingItem.network = [itemNetworkField stringValue];
-	editingItem.releaseDate	= [itemReleaseDateField stringValue];
-	if([itemHDVideoButton state] == NSOnState){
-		editingItem.hdVideo = [NSNumber numberWithInt:1];
-	}else{
-		editingItem.hdVideo = [NSNumber numberWithInt:0];
-	}
-	if ([[[itemTypePopUp selectedItem] title] isEqualToString:@"TV Show"]) {
-		editingItem.type = [NSNumber numberWithInt:ItemTypeTV];
-	}else {
-		editingItem.type = [NSNumber numberWithInt:ItemTypeMovie];
-	}
-
-	editingItem.genre = [[itemGenrePopUp selectedItem] title];
-	[appController saveAction:nil];
-
-	return YES;
+	self.editingItem = nil;
+	[self.itemWindow orderOut:sender];
 }
 
 - (IBAction) browseOutput: (id) sender{
     NSSavePanel * panel = [NSSavePanel savePanel];
 	/* We get the current file name and path from the destination field here */
-	[panel beginSheetForDirectory: [[itemOutputField stringValue] stringByDeletingLastPathComponent]
-							 file: [[itemOutputField stringValue] lastPathComponent]
-				   modalForWindow: itemWindow modalDelegate: self
+	[panel beginSheetForDirectory: [[self.itemOutputField stringValue] stringByDeletingLastPathComponent]
+							 file: [[self.itemOutputField stringValue] lastPathComponent]
+				   modalForWindow: self.itemWindow modalDelegate: self
 				   didEndSelector: @selector( browseOutputDone:returnCode:contextInfo: )
 					  contextInfo: NULL];
 }
@@ -267,232 +148,116 @@
              returnCode: (int) returnCode
 			contextInfo: (void *) contextInfo{
     if( returnCode == NSOKButton ){
-        [itemOutputField setStringValue: [sheet filename]];
+        [self.itemOutputField setStringValue: [sheet filename]];
     }
 }
 
 - (IBAction)updateMetadata: (id)sender{
-	[self saveItem];
 	NSError *anError;
-	[appController updateMetadata: editingItem error:&anError];
-	[self populateItemWindowFields:editingItem];
+	[self.appController updateMetadata: self.editingItem error:&anError];
 }
 
 - (IBAction)writeMetadata: (id)sender{
 	NSError *anError;
-	[appController setHDFlag: editingItem error:&anError];
-	[appController writeMetadata: editingItem error:&anError];
+	[self.appController setHDFlag: self.editingItem error:&anError];
+	[self.appController writeMetadata: self.editingItem error:&anError];
 }
 
-#pragma mark Tag Window Methods
-
-- (void)populateTagWindowFields: (MediaItem *)anItem {
-	NSString *output = [anItem output];
-	if (output == nil) {
-		output = [NSString string];
-	}
-	[tagFileField setStringValue:output];
-
-	NSString *title = [anItem title];
-	if (title == nil) {
-		title = [NSString string];
-	}
-	[tagTitleField setStringValue:title];
-
-	NSString *showName = [anItem showName];
-	if (showName == nil) {
-		showName = [NSString string];
-	}
-	[tagShowField setStringValue:showName];
-
-	NSString *season = [[anItem season] stringValue];
-	if (season == nil) {
-		season = [NSString string];
-	}
-	[tagSeasonField setStringValue:season];
-
-	NSString *episode = [[anItem episode] stringValue];
-	if (episode == nil) {
-		episode = [NSString string];
-	}
-	[tagEpisodeField setStringValue:episode];
-
-	NSString *summary = [anItem summary];
-	if (summary == nil) {
-		summary = [NSString string];
-	}
-	[tagSummaryField setStringValue:summary];
-
-	NSImage *coverArt = [[NSImage alloc] initWithData:[anItem coverArt]];
-	[tagCoverArtField setImage:coverArt];
-
-	NSString *longDesc = [anItem longDescription];
-	if (longDesc == nil) {
-		longDesc = [NSString string];
-	}
-	[tagDescriptionField setStringValue:longDesc];
-
-	NSString *copyright = [anItem copyright];
-	if (copyright == nil) {
-		copyright = [NSString string];
-	}
-	[tagCopyrightField setStringValue:copyright];
-
-	NSString *network = [anItem network];
-	if (network == nil) {
-		network = [NSString string];
-	}
-	[tagNetworkField setStringValue:network];
-
-	NSString *releaseDate = [anItem releaseDate];
-	if (releaseDate == nil) {
-		releaseDate = [NSString string];
-	}
-	[tagReleaseDateField setStringValue:releaseDate];
-
-	NSNumber *type = [anItem type];
-	[tagTypePopUp selectItemWithTitle:nil];
-	if ([type intValue] == 1) {
-		[tagTypePopUp selectItemWithTitle:@"TV Show"];
-	}else if ([type intValue] == 2) {
-		[tagTypePopUp selectItemWithTitle:@"Movie"];
-	}
-
-	[tagGenrePopUp selectItemWithTitle: [anItem genre]];
-}
-
-- (BOOL)saveTagItem {
-	NSNumberFormatter *numFormatter = [NSNumberFormatter alloc];
-	if (tagItem == nil) {
-		NSLog(@"Somehow saveTagItem was called without a current tagItem");
-		return NO;
-	}
-	tagItem.showName = [tagShowField stringValue];
-	tagItem.title = [tagTitleField stringValue];
-	tagItem.season = [numFormatter numberFromString:[tagSeasonField stringValue]];
-	tagItem.episode = [numFormatter numberFromString:[tagEpisodeField stringValue]];
-	tagItem.summary = [tagSummaryField stringValue];
-	if ([tagCoverArtField image] != nil) {
-		tagItem.coverArt = [NSBitmapImageRep representationOfImageRepsInArray:[[tagCoverArtField image] representations]
-																	usingType:NSJPEGFileType
-																   properties:nil];
-	}else {
-		tagItem.coverArt = nil;
-	}
-
-
-	tagItem.longDescription = [tagDescriptionField stringValue];
-	tagItem.copyright = [tagCopyrightField stringValue];
-	tagItem.network = [tagNetworkField stringValue];
-	tagItem.releaseDate	= [tagReleaseDateField stringValue];
-	if([tagHDVideoButton state] == NSOnState){
-		tagItem.hdVideo = [NSNumber numberWithInt:1];
-	}else{
-		tagItem.hdVideo = [NSNumber numberWithInt:0];
-	}
-	if ([[[tagTypePopUp selectedItem] title] isEqualToString:@"TV Show"]) {
-		tagItem.type = [NSNumber numberWithInt:ItemTypeTV];
-	}else {
-		tagItem.type = [NSNumber numberWithInt:ItemTypeMovie];
-	}
-
-	tagItem.genre = [[tagGenrePopUp selectedItem] title];
-	[appController saveAction:nil];
-
-	return YES;
-}
-
+#pragma mark - Tag Window Methods
 - (IBAction)closeTagWindow: (id)sender{
 	NSError *anError;
-	if (sender == tagWriteButton) {
-		[self saveTagItem];
-		[appController writeMetadata:tagItem error:&anError];
-		[tagFileButton setEnabled:NO];
+	if (sender == self.tagWriteButton) {
+		[self.appController writeMetadata:self.tagItem error:&anError];
+		[self.tagFileButton setEnabled:NO];
+	}else if (sender == self.tagCancelButton) {
+		// Get rid of transient tagItem in core data
+		NSManagedObjectContext *moc = [self.appController managedObjectContext];
+		[moc deleteObject:self.tagItem];
+		
+		[self.appController saveAction:nil];
+		self.tagItem = nil;		
 	}
 
-	[tagFileWindow orderOut:sender];
+	[self.tagFileWindow orderOut:sender];
 }
 
 - (IBAction)updateTagMetadata: (id)sender{
-	[self saveTagItem];
 	NSError *anError;
-	[appController updateMetadata: tagItem error:&anError];
-	[self populateTagWindowFields:tagItem];
+	[self.appController updateMetadata: self.tagItem error:&anError];
 }
 
 
-#pragma mark Queue Window Methods
-
+#pragma mark - Queue Window Methods
 - (NSArray *)queueItems{
-	return [appController queueItems];
+	return [self.appController queueItems];
 }
 
 - (void)windowDidBecomeMain:(NSNotification *)notification{
-	NSArray *subviews = [statusViewHolder subviews];
+	NSArray *subviews = [self.statusViewHolder subviews];
 	if ([subviews count] > 0) {
-		NSView *currentView = [subviews objectAtIndex:0];
-		[statusViewHolder resizeSubviewsWithOldSize:[currentView bounds].size];
+		NSView *currentView = subviews[0];
+		[self.statusViewHolder resizeSubviewsWithOldSize:[currentView bounds].size];
 	}
 }
 
 - (void)setViewTo:(NSView *)view{
-	NSArray *subviews = [statusViewHolder subviews];
-	NSView *currentView = [subviews objectAtIndex:0];
+	NSArray *subviews = [self.statusViewHolder subviews];
+	NSView *currentView = subviews[0];
 	if (currentView != view ) {
 		[currentView removeFromSuperview];
-		[statusViewHolder addSubview:view];
-		[statusViewHolder resizeSubviewsWithOldSize:[view bounds].size];
+		[self.statusViewHolder addSubview:view];
+		[self.statusViewHolder resizeSubviewsWithOldSize:[view bounds].size];
 	}
 }
 
 - (IBAction)startEncode: (id)sender{
-	QueueItem *selectedItem = [[queueItems selectedObjects] objectAtIndex:0];
-	[appController startEncode:selectedItem];
+	QueueItem *selectedItem = [self.queueItemController selectedObjects][0];
+	[self.appController startEncode:selectedItem];
 }
 
 - (void)updateEncodeProgress: (double)progress withEta: (NSString *) eta ofItem: (QueueItem *)item{
-	[self setViewTo:statusProgressView];
+	[self setViewTo:self.statusProgressView];
 
 	// Refresh table for icon update
-	[queueItemsTable reloadData];
-	[queueItemsTable setNeedsDisplay];
+	[self.queueItemsTable reloadData];
+	[self.queueItemsTable setNeedsDisplay];
 
 	// Disable start button if needed
-	if ([startEndcodeButton isEnabled]) {
-		[startEndcodeButton setEnabled:FALSE];
+	if ([self.startEndcodeButton isEnabled]) {
+		[self.startEndcodeButton setEnabled:FALSE];
 	}
-	[statusField setStringValue:item.mediaItem.shortName];
+	[self.statusField setStringValue:item.mediaItem.shortName];
 	if (eta == nil) {
-		[etaField setStringValue:@"--h--m--s"];
+		[self.etaField setStringValue:@"--h--m--s"];
 	}else{
-		[etaField setStringValue:eta];
+		[self.etaField setStringValue:eta];
 	}
-	[statusProgressField setDoubleValue:progress];
+	[self.statusProgressField setDoubleValue:progress];
 }
 
 - (void)encodeEnded{
-	[queueItemsTable reloadData];
-	[queueItemsTable setNeedsDisplay];
-	[self setViewTo:statusNoItemView];
-	[startEndcodeButton setEnabled:TRUE];
+	[self.queueItemsTable reloadData];
+	[self.queueItemsTable setNeedsDisplay];
+	[self setViewTo: self.statusNoItemView];
+	[self.startEndcodeButton setEnabled:TRUE];
 }
 
 - (IBAction)stopEncode: (id)sender{
-	[appController stopEncode];
+	[self.appController stopEncode];
 }
 
 - (NSArray *)tableSortDescriptors{
 	NSSortDescriptor *sortOrder = [[NSSortDescriptor alloc]
 								   initWithKey: @"sortOrder" ascending:YES] ;
-	return [NSArray arrayWithObjects: sortOrder, nil];
+	return @[sortOrder];
 }
 
 - (void) rearrangeTable{
-	[queueItems didChangeArrangementCriteria];
+	[self.queueItemController didChangeArrangementCriteria];
 }
 
 - (void) editRow:(id)sender{
-	int row = [queueItemsTable clickedRow];
+	NSInteger row = [self.queueItemsTable clickedRow];
 	if(row == -1){
 		return;
 	}
@@ -501,15 +266,15 @@
 }
 
 - (IBAction) moveItemUp: (id)sender{
-	QueueItem *selectedItem = [[queueItems selectedObjects] objectAtIndex:0];
-	if ([appController moveItemUp:selectedItem]) {
+	QueueItem *selectedItem = [self.queueItemController selectedObjects][0];
+	if ([self.appController moveItemUp:selectedItem]) {
 		[self rearrangeTable];
 	};
 }
 
 - (IBAction) moveItemDown: (id)sender{
-	QueueItem *selectedItem = [[queueItems selectedObjects] objectAtIndex:0];
-	if ([appController moveItemDown:selectedItem]) {
+	QueueItem *selectedItem = [self.queueItemController selectedObjects][0];
+	if ([self.appController moveItemDown:selectedItem]) {
 		[self rearrangeTable];
 	};
 }
@@ -518,7 +283,7 @@
 - (NSDragOperation)draggingEntered:(id < NSDraggingInfo >)sender{
 	NSLog(@"draggingEntered");
 	NSPasteboard *pboard = [sender draggingPasteboard];
-    unsigned int mask = [sender draggingSourceOperationMask];
+    NSDragOperation mask = [sender draggingSourceOperationMask];
     unsigned int ret = (NSDragOperationCopy & mask);
 
     if ([[pboard types] indexOfObject:NSFilenamesPboardType] == NSNotFound) {
@@ -530,7 +295,7 @@
 
 - (NSDragOperation)draggingUpdated:(id < NSDraggingInfo >)sender{
 	NSPasteboard *pboard = [sender draggingPasteboard];
-    unsigned int mask = [sender draggingSourceOperationMask];
+    NSDragOperation mask = [sender draggingSourceOperationMask];
     unsigned int ret = (NSDragOperationCopy & mask);
 
     if ([[pboard types] indexOfObject:NSFilenamesPboardType] == NSNotFound) {
@@ -553,7 +318,7 @@
 	NSError *anError;
 	for(NSString *filename in files){
 		NSLog(@"Adding file %@", filename);
-		[appController addFileToQueue:filename error:&anError];
+		[self.appController addFileToQueue:filename error:&anError];
 	}
 
     return YES;
@@ -562,5 +327,6 @@
 - (void)concludeDragOperation:(id < NSDraggingInfo >)sender{
 
 }
+
 
 @end

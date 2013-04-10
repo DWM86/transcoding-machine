@@ -36,7 +36,7 @@
 	
 	AppController *appController = [NSApp delegate];
     NSArray *queueItems = [appController queueItems];
-    unsigned index = [queueItems indexOfObjectIdenticalTo:self];
+    NSUInteger index = [queueItems indexOfObjectIdenticalTo:self];
 	
 	NSScriptClassDescription *appClassDesc = (NSScriptClassDescription *)[NSScriptClassDescription classDescriptionForClass:[NSApp class]];
 	

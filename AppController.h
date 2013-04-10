@@ -20,7 +20,7 @@
 @end
 
 
-@interface AppController : NSObject <MetadataProviderDelegate>{
+@interface AppController : NSObject <MetadataProviderDelegate, NSWindowDelegate>{
 	NSUserDefaults *defaults;
 
     NSPersistentStoreCoordinator *persistentStoreCoordinator;
@@ -32,7 +32,6 @@
 	NSString *appSupportDir;
 	NSString *appResourceDir;
 	NSString *encodeStatusFile;
-	NSString *queueFile;
 
 	NSTask *encodingTask;
 	QueueItem *encodingItem;

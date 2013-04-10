@@ -22,8 +22,6 @@
 		3627392E110134C200AA63E8 /* TheTVDBProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 3627392D110134C200AA63E8 /* TheTVDBProvider.m */; };
 		365AEB9510E19DC300E78B0D /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 365AEB9310E19DC300E78B0D /* MainMenu.xib */; };
 		365B113010EE51D200F10BC3 /* TranscodingMachine.icns in Resources */ = {isa = PBXBuildFile; fileRef = 365B112F10EE51D200F10BC3 /* TranscodingMachine.icns */; };
-		365B121210EE7C4E00F10BC3 /* RegexKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 365B121110EE7C4E00F10BC3 /* RegexKit.framework */; };
-		365B122D10EE7C9600F10BC3 /* RegexKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 365B121110EE7C4E00F10BC3 /* RegexKit.framework */; };
 		365CB68710F021AF005F7DF6 /* EncodeCanceled.png in Resources */ = {isa = PBXBuildFile; fileRef = 365CB67F10F021AF005F7DF6 /* EncodeCanceled.png */; };
 		365CB68810F021AF005F7DF6 /* EncodeComplete.png in Resources */ = {isa = PBXBuildFile; fileRef = 365CB68010F021AF005F7DF6 /* EncodeComplete.png */; };
 		365CB6B010F024AB005F7DF6 /* EncodePending.png in Resources */ = {isa = PBXBuildFile; fileRef = 365CB6AF10F024AB005F7DF6 /* EncodePending.png */; };
@@ -35,6 +33,12 @@
 		368A1E1811583E22000A15BB /* AtomicParsley in Resources */ = {isa = PBXBuildFile; fileRef = 368A1E1711583E22000A15BB /* AtomicParsley */; };
 		368A1E3B11584950000A15BB /* MediaItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 368A1E3911584950000A15BB /* MediaItem.m */; };
 		368A1E4811584A4F000A15BB /* QueueItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 368A1E4711584A4F000A15BB /* QueueItem.m */; };
+		36F9F6E51708A8E900A82F26 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		36F9F6EF1708A8E900A82F26 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 36F9F6ED1708A8E900A82F26 /* InfoPlist.strings */; };
+		36F9F6F21708A8E900A82F26 /* TMTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 36F9F6F11708A8E900A82F26 /* TMTests.m */; };
+		36F9F6F71708A90A00A82F26 /* AppControllerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 36F9F6DB1708A72E00A82F26 /* AppControllerTest.m */; };
+		36F9F6FB1708AE8700A82F26 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36F9F6FA1708AE8700A82F26 /* SenTestingKit.framework */; };
+		36F9F6FE1708D50200A82F26 /* NSManagedObject+RevertChanges.m in Sources */ = {isa = PBXBuildFile; fileRef = 36F9F6FD1708D50200A82F26 /* NSManagedObject+RevertChanges.m */; };
 		36FDB90C10E049E100656846 /* QueueController.m in Sources */ = {isa = PBXBuildFile; fileRef = 36FDB90B10E049E100656846 /* QueueController.m */; };
 		36FDB91110E04A2900656846 /* Queue.xib in Resources */ = {isa = PBXBuildFile; fileRef = 36FDB91010E04A2900656846 /* Queue.xib */; };
 		770B37ED0679A11B001EADE2 /* QueueManager_DataModel.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = 770B37EC0679A11B001EADE2 /* QueueManager_DataModel.xcdatamodel */; };
@@ -43,6 +47,16 @@
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		36F9F6F81708A9BB00A82F26 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D1107260486CEB800E47090;
+			remoteInfo = TranscodingMachine;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		365B121D10EE7C7400F10BC3 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -50,7 +64,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				365B122D10EE7C9600F10BC3 /* RegexKit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,7 +99,6 @@
 		3627392D110134C200AA63E8 /* TheTVDBProvider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TheTVDBProvider.m; sourceTree = "<group>"; };
 		365AEB9410E19DC300E78B0D /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		365B112F10EE51D200F10BC3 /* TranscodingMachine.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = TranscodingMachine.icns; sourceTree = "<group>"; };
-		365B121110EE7C4E00F10BC3 /* RegexKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RegexKit.framework; path = Local/Frameworks/RegexKit.framework; sourceTree = DEVELOPER_DIR; };
 		365CB67F10F021AF005F7DF6 /* EncodeCanceled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = EncodeCanceled.png; sourceTree = "<group>"; };
 		365CB68010F021AF005F7DF6 /* EncodeComplete.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = EncodeComplete.png; sourceTree = "<group>"; };
 		365CB6AF10F024AB005F7DF6 /* EncodePending.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = EncodePending.png; sourceTree = "<group>"; };
@@ -101,6 +113,21 @@
 		368A1E3911584950000A15BB /* MediaItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaItem.m; sourceTree = "<group>"; };
 		368A1E4611584A4F000A15BB /* QueueItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueueItem.h; sourceTree = "<group>"; };
 		368A1E4711584A4F000A15BB /* QueueItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QueueItem.m; sourceTree = "<group>"; };
+		36F9F6DA1708A72E00A82F26 /* AppControllerTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppControllerTest.h; path = ../Tests/AppControllerTest.h; sourceTree = "<group>"; };
+		36F9F6DB1708A72E00A82F26 /* AppControllerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppControllerTest.m; path = ../Tests/AppControllerTest.m; sourceTree = "<group>"; };
+		36F9F6E21708A8E900A82F26 /* TMTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TMTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36F9F6E31708A8E900A82F26 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		36F9F6E71708A8E900A82F26 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		36F9F6E81708A8E900A82F26 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		36F9F6E91708A8E900A82F26 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		36F9F6EC1708A8E900A82F26 /* TMTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "TMTests-Info.plist"; sourceTree = "<group>"; };
+		36F9F6EE1708A8E900A82F26 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		36F9F6F01708A8E900A82F26 /* TMTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TMTests.h; sourceTree = "<group>"; };
+		36F9F6F11708A8E900A82F26 /* TMTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TMTests.m; sourceTree = "<group>"; };
+		36F9F6F31708A8E900A82F26 /* TMTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TMTests-Prefix.pch"; sourceTree = "<group>"; };
+		36F9F6FA1708AE8700A82F26 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		36F9F6FC1708D50200A82F26 /* NSManagedObject+RevertChanges.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSManagedObject+RevertChanges.h"; sourceTree = "<group>"; };
+		36F9F6FD1708D50200A82F26 /* NSManagedObject+RevertChanges.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSManagedObject+RevertChanges.m"; sourceTree = "<group>"; };
 		36FDB90A10E049E100656846 /* QueueController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueueController.h; sourceTree = "<group>"; };
 		36FDB90B10E049E100656846 /* QueueController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QueueController.m; sourceTree = "<group>"; };
 		36FDB91010E04A2900656846 /* Queue.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Queue.xib; sourceTree = "<group>"; };
@@ -111,13 +138,21 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		36F9F6DE1708A8E900A82F26 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36F9F6FB1708AE8700A82F26 /* SenTestingKit.framework in Frameworks */,
+				36F9F6E51708A8E900A82F26 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				3604356010DE921A0000D43A /* ScriptingBridge.framework in Frameworks */,
-				365B121210EE7C4E00F10BC3 /* RegexKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,29 +185,11 @@
 			name = Classes;
 			sourceTree = "<group>";
 		};
-		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
-				365B121110EE7C4E00F10BC3 /* RegexKit.framework */,
-			);
-			name = "Linked Frameworks";
-			sourceTree = "<group>";
-		};
-		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				77C82804067257F0000B614F /* CoreData.framework */,
-				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
-				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
-			);
-			name = "Other Frameworks";
-			sourceTree = "<group>";
-		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* TranscodingMachine.app */,
+				36F9F6E21708A8E900A82F26 /* TMTests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -180,10 +197,12 @@
 		29B97314FDCFA39411CA2CEA /* QueueManager */ = {
 			isa = PBXGroup;
 			children = (
+				36F9F6FA1708AE8700A82F26 /* SenTestingKit.framework */,
 				7756732906782D8800D1FEB8 /* Models */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				36F9F6EA1708A8E900A82F26 /* TMTests */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -195,6 +214,8 @@
 			children = (
 				32CA4F630368D1EE00C91783 /* TranscodingMachine_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
+				36F9F6FC1708D50200A82F26 /* NSManagedObject+RevertChanges.h */,
+				36F9F6FD1708D50200A82F26 /* NSManagedObject+RevertChanges.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -224,9 +245,13 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
-				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				77C82804067257F0000B614F /* CoreData.framework */,
+				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
 				3604355810DE921A0000D43A /* ScriptingBridge.framework */,
+				36F9F6E31708A8E900A82F26 /* SenTestingKit.framework */,
+				36F9F6E61708A8E900A82F26 /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -240,6 +265,38 @@
 				365CB68010F021AF005F7DF6 /* EncodeComplete.png */,
 			);
 			name = Images;
+			sourceTree = "<group>";
+		};
+		36F9F6E61708A8E900A82F26 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				36F9F6E71708A8E900A82F26 /* AppKit.framework */,
+				36F9F6E81708A8E900A82F26 /* CoreData.framework */,
+				36F9F6E91708A8E900A82F26 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		36F9F6EA1708A8E900A82F26 /* TMTests */ = {
+			isa = PBXGroup;
+			children = (
+				36F9F6F01708A8E900A82F26 /* TMTests.h */,
+				36F9F6F11708A8E900A82F26 /* TMTests.m */,
+				36F9F6DA1708A72E00A82F26 /* AppControllerTest.h */,
+				36F9F6DB1708A72E00A82F26 /* AppControllerTest.m */,
+				36F9F6EB1708A8E900A82F26 /* Supporting Files */,
+			);
+			path = TMTests;
+			sourceTree = "<group>";
+		};
+		36F9F6EB1708A8E900A82F26 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				36F9F6EC1708A8E900A82F26 /* TMTests-Info.plist */,
+				36F9F6ED1708A8E900A82F26 /* InfoPlist.strings */,
+				36F9F6F31708A8E900A82F26 /* TMTests-Prefix.pch */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		7756732906782D8800D1FEB8 /* Models */ = {
@@ -257,6 +314,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		36F9F6E11708A8E900A82F26 /* TMTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36F9F6F41708A8E900A82F26 /* Build configuration list for PBXNativeTarget "TMTests" */;
+			buildPhases = (
+				36F9F6DD1708A8E900A82F26 /* Sources */,
+				36F9F6DE1708A8E900A82F26 /* Frameworks */,
+				36F9F6DF1708A8E900A82F26 /* Resources */,
+				36F9F6E01708A8E900A82F26 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36F9F6F91708A9BB00A82F26 /* PBXTargetDependency */,
+			);
+			name = TMTests;
+			productName = TMTests;
+			productReference = 36F9F6E21708A8E900A82F26 /* TMTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
 		8D1107260486CEB800E47090 /* TranscodingMachine */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 26FC0A840875C7B200E6366F /* Build configuration list for PBXNativeTarget "TranscodingMachine" */;
@@ -282,7 +358,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = UversaInc;
 			};
 			buildConfigurationList = 26FC0A880875C7B200E6366F /* Build configuration list for PBXProject "TranscodingMachine" */;
@@ -294,17 +370,27 @@
 				Japanese,
 				French,
 				German,
+				en,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* QueueManager */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* TranscodingMachine */,
+				36F9F6E11708A8E900A82F26 /* TMTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		36F9F6DF1708A8E900A82F26 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36F9F6EF1708A8E900A82F26 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D1107290486CEB800E47090 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -331,7 +417,32 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		36F9F6E01708A8E900A82F26 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		36F9F6DD1708A8E900A82F26 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36F9F6F71708A90A00A82F26 /* AppControllerTest.m in Sources */,
+				36F9F6F21708A8E900A82F26 /* TMTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072C0486CEB800E47090 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -349,10 +460,19 @@
 				368A1E3B11584950000A15BB /* MediaItem.m in Sources */,
 				368A1E4811584A4F000A15BB /* QueueItem.m in Sources */,
 				3611843D11616E2E00A4AA57 /* TheMovieDBProvider.m in Sources */,
+				36F9F6FE1708D50200A82F26 /* NSManagedObject+RevertChanges.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		36F9F6F91708A9BB00A82F26 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8D1107260486CEB800E47090 /* TranscodingMachine */;
+			targetProxy = 36F9F6F81708A9BB00A82F26 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
@@ -371,27 +491,33 @@
 			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
+		36F9F6ED1708A8E900A82F26 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				36F9F6EE1708A8E900A82F26 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		26FC0A850875C7B200E6366F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				BUILD_STYLE = Debug;
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(DEVELOPER_DIR)/Local/Frameworks\"",
+					"\"$(DEVELOPER_DIR)/Frameworks\"",
 				);
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = TranscodingMachine_Prefix.pch;
 				INFOPLIST_FILE = "TranscodingMachine-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = TranscodingMachine;
 				WRAPPER_EXTENSION = app;
 			};
@@ -401,17 +527,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_STYLE = Release;
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(DEVELOPER_DIR)/Local/Frameworks\"",
+					"\"$(DEVELOPER_DIR)/Frameworks\"",
 				);
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = TranscodingMachine_Prefix.pch;
 				INFOPLIST_FILE = "TranscodingMachine-Info.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = TranscodingMachine;
 				WRAPPER_EXTENSION = app;
 			};
@@ -420,10 +546,21 @@
 		26FC0A890875C7B200E6366F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				BUILD_STYLE = Debug;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "DEBUG=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -433,12 +570,51 @@
 		26FC0A8A0875C7B200E6366F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				BUILD_STYLE = Release;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		36F9F6F51708A8E900A82F26 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/TranscodingMachine.app/Contents/MacOS/TranscodingMachine";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = TranscodingMachine_Prefix.pch;
+				INFOPLIST_FILE = "TMTests/TMTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		36F9F6F61708A8E900A82F26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/TranscodingMachine.app/Contents/MacOS/TranscodingMachine";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = TranscodingMachine_Prefix.pch;
+				INFOPLIST_FILE = "TMTests/TMTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
 			};
 			name = Release;
 		};
@@ -462,6 +638,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		36F9F6F41708A8E900A82F26 /* Build configuration list for PBXNativeTarget "TMTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36F9F6F51708A8E900A82F26 /* Debug */,
+				36F9F6F61708A8E900A82F26 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
